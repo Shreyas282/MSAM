@@ -1,0 +1,8 @@
+-par(1)*x(1)*x(1)+par(2)*x(2)*x(2)+par(7)*u*u
+-par(1)*x(1)*x(1)+par(2)*x(2)*x(2)+par(7)*u
+-par(1)*x(1)*x(1)+par(2)*x(2)+par(7)*u
+-par(1)*x(1)+par(2)*x(2)+par(7)*u
+-par(1)*x(1)+par(7)*u
+par(2)*x(2)+par(7)*u
+-par(1)*x(1)*x(2)+par(7)*u
+-par(2)*x(2)*x(1)+par(7)*u
