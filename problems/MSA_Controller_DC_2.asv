@@ -226,8 +226,9 @@ for opt =0
                 if matlabpool('size') == 0% checking to see if my pool is already open
                  matlabpool local;
                 end
+               
                 out = MSAMp(p,its,its2);
-%                 disp(['Total CPU time: ' num2str(cputime-t)]);
+                disp(['Total CPU time: ' num2str(cputime-t)]);
                 matlabpool close;
             else
                 out = MSAM(p,its,its2);

@@ -2,14 +2,21 @@ function out = MSAM(p,its,its2)
 %Model Structure Adaptation Method
 % William La Cava 2015
 
+out=[];
+disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
+disp(' Running MSAM version 1.0.0-wgl');
+disp('///////////////////////////////');
+
+disp(['Number of round robin iterations: ' num2str(its)]);
+disp(['Number of final adaptation iterations: ' num2str(its2)]);
 
 if ~p.continuept2    
      colors = ['r','b','g','m','c'];
     %% initial error, correlation and string distance
     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
-    pert_index = zeros(length(p.intvars),p.num_terms);
+    %pert_index = zeros(length(p.intvars),p.num_terms);
     a = repmat({1:length(p.intvars)},1,p.num_terms);
-    pert_index = allcomb(a{:});
+    pert_index = allcomb(a{:})';
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
@@ -37,7 +44,7 @@ if ~p.continuept2
     delM = zeros(p.num_terms,its,num_models);
     mu=[];
     chosen=struct();
-    pertnum=zeros(p.num_terms,num_models);
+   % pertnum=zeros(p.num_terms,num_models);
    % models = [];
     %% run hill climb
    
@@ -45,7 +52,7 @@ if ~p.continuept2
 
 for a = 1:num_models
     %reset variables for each hill climb
-
+    disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
     can_mod = p.nom_mod;
     beta(:,:,a)=p.init_beta;
 
@@ -55,7 +62,7 @@ for a = 1:num_models
 
     % choose unique set of perturbation types
 %         while pass(a) ~= 1
-            [chosen,can_mod,pertnum(:,a)] = ChoosePertType(can_mod,p,pert_index(a,:));
+            [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(:,a));
             models(:,a) = [can_mod;chosen];
 
 %             if a==1
@@ -76,7 +83,7 @@ for a = 1:num_models
         %choose starting value of rho
         for j=1:length(t_opts)
             % if the perturbation variable is already part of the term
-            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pertnum(j,a))),'once');
+            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index(j,a))),'once');
             if sum(tmp)>0
                 % if the perturbation variable is already part of the
                 % perturbed term, start rho at the exponent of that term
@@ -103,7 +110,7 @@ for a = 1:num_models
             %       if Produce_phi==1
 %                 try
 
-                [p_t(:,x,a),phi(:,:,x,a),error(:,x,a),sum_abs_error(x,a),max_corr(x,a),outputs(x,a),p,pass2(x,a)] = Sensitivity_compute(models(:,a),beta(:,x-1,a),gamma(:,x-1,a),rho(:,x-1,a),mu(:,x-1,a),p_t(:,x-1,a),p);
+                [p_t(:,x,a),phi(:,:,x,a),error(:,x,a),sum_abs_error(x,a),max_corr(x,a),outputs(x,a),pass2(x,a)] = Sensitivity_compute(models(:,a),beta(:,x-1,a),gamma(:,x-1,a),rho(:,x-1,a),p_t(:,x-1,a),p);
                 if p.mod_adapt.MC_NLS_plot == 1
                     p.dydtheta=outputs(x,a).dydtheta;
                     p.MC = outputs(x,a).MC;
@@ -218,7 +225,7 @@ for a = 1:num_models
                     try
                         perttitle=RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
                             sum_abs_error(1:x,a),max_corr(1:x,a),...
-                            pertnum(:,a),p_t(:,x,a),phiplot,rho(:,:,a),error(:,:,a));
+                            pert_index(:,a),p_t(:,x,a),phiplot,rho(:,:,a),error(:,:,a));
                     catch
                         keyboard
                     end
@@ -238,7 +245,7 @@ for a = 1:num_models
                         best_rho = rho(:,x,a);
                         best_rho_hist = rho;
                         best_models = models(:,a);
-                        best_pertnum=pertnum(:,a);
+                        best_pertnum=pert_index(:,a);
                         best_mu = mu(:,x,a);
                         best_beta = beta(:,x,a);
                         endits = x;
@@ -411,9 +418,9 @@ for x = itsstart:its2
 end
 if p.plotinloop2
         figure;
-        plot(p.yhat,'--g'); 
+        plot(p.yhat,'--g'); hold on;
         plot(y_best,'r'); 
-        plot(p.Y,'b'); hold on;
+        plot(p.Y,'b'); %hold on;
         title(['Best final model' best_perttitle]);
         l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
         set(l,'interpreter','latex','Fontsize',12);
@@ -428,6 +435,10 @@ if p.save==1
     save(savefile); 
     best_mod.eqn_sym
 end
-
+out.best_mod = best_mod;
+out.y_best = y_best;
+out.best_error = best_error;
+out.best_corr = best_corr;
+out.best_rho=best_rho;
 
 end

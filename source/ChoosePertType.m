@@ -1,4 +1,4 @@
-function [chosen,candidate,pertnum] = ChoosePertType(candidate,p,pert_index)
+function [chosen,candidate] = ChoosePertType(candidate,p,pert_index)
 
 % candidate: model structure
 % options: perturbance options (variables considered)
@@ -16,13 +16,13 @@ for count=1:length(term_options)
 
     %choose perturbations randomly
 %      pertnum(count) = intrand(1,length(pert_options));
-     pertnum(count) = pert_index(count);
+     %pertnum(count) = pert_index(count);
 % %     debugging
 %         pertnum(1) = 2;
 %         pertnum(2) = 1;
 %         pertnum(3) = 3;
     
-    pertchoice(count) = pert_options(pertnum(count));
+    pertchoice(count) = pert_options(pert_index(count));
     
     chosen(count) = candidate;
        
@@ -30,9 +30,9 @@ for count=1:length(term_options)
     
     chosen(count).eqn_sym = GetEqnSym(chosen(count),term_options(count));
     chosen(count).eqn_str = GetEqnStr_sym(chosen(count),p.allvars);
-    
+    chosen(count).eqn_form = chosen(count).eqn_sym;
 end
-
+candidate.eqn_form = GetEqnForm([candidate,chosen],term_options);
 chosen=chosen';
 % % put gamma terms into candidate
 % candidate.eqn_sym = GetEqnSym(candidate);

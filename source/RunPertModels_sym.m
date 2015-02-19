@@ -160,7 +160,7 @@ function output = RunPertModels_sym(model_options,beta,p)
     end
     y_all(ndata,length(model_options),size(dTheta,1)) = 0;
     
-    
+    %disp(['number of model options: ' num2str(length(model_options))]);
     for j = 1:length(model_options)
         for bs=1:length(beta)
         model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{['b' num2str(bs)]},eval(['b' num2str(bs)]));
@@ -175,12 +175,23 @@ function output = RunPertModels_sym(model_options,beta,p)
             y0(:,j)=y_tmp;
             pass=1;
             % sim(p.simulation.sim_model);
-        catch ME
-            ME
+        catch 
             %         y0=ones(128,1)*rand*10000;
-            fprintf(['Model form ' outstr ...
+            fprintf(['Model form ' char(model_options(j).eqn_form) ...
                 ' failed to output a valid response in simulink.\n']);
 %             keyboard
+%             if j==1
+%                 y0=0; y_all=0; y_ave=0; dMC=0; MC=0;
+%                 output.y0 = y0;
+%                 output.y_all= y_all;
+%                 output.y_ave = y_ave;
+%                 output.dMC = dMC;
+%                 output.MC = MC;
+%                 if p.mod_adapt.output_dydtheta
+%                     output.dydtheta = 0;
+%                 end
+%                 return;
+%             end
             pass=0;
         end
         if pass==1

@@ -1,10 +1,10 @@
-function out = MSAM(p,its,its2)
+function out = MSAMp(p,its,its2)
 %Model Structure Adaptation Method
 % William La Cava 2015
 
 out=[];
 disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
-disp(' Running MSAM version 1.0.0-wgl');
+disp(' Running MSAMp version 1.0.0-wgl');
 disp('///////////////////////////////');
 
 disp(['Number of round robin iterations: ' num2str(its)]);
@@ -14,56 +14,65 @@ if ~p.continuept2
      colors = ['r','b','g','m','c'];
     %% initial error, correlation and string distance
     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
-    %pert_index = zeros(length(p.intvars),p.num_terms);
+%     num_models=8;
+%pert_index = zeros(length(p.intvars),p.num_terms);
     a = repmat({1:length(p.intvars)},1,p.num_terms);
-    pert_index = allcomb(a{:})';
+    pert_index = allcomb(a{:});
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
    
-    max_corr = nom_corr;
-    best_corr  = nom_corr;
-    best_gamma = [0,0];
-    best_error = nom_error;
-    sum_abs_error=nom_error;
+    sum_abs_error=zeros(num_models,its); 
+    max_corr=zeros(num_models,its); 
+    best_corr_p  = nom_corr*ones(1,num_models);
+    best_error_p = nom_error*ones(1,num_models);
+    best_models(1:num_models) = p.nom_mod;
     best_mod = p.nom_mod; % best model from all runs
+    best_rho_p = zeros(p.num_terms,num_models);
+    best_mu_p = repmat(p.mod_adapt.mustart,1,num_models);
+    best_beta_p = zeros(p.num_terms,num_models);
+%     best_gamma = [0,0];
     y_best = p.yhat;
+    y_best_p = repmat(p.yhat,1,num_models);
     pass(1:num_models) = 0;
     p.mod_adapt.bestpass =1;
     p.mod_adapt.valleycontrol = 1;
     win_criteria = .9995;
-       
+    best_models_p = repmat(p.nom_mod,p.num_terms+1,num_models);   
     nom_gamma = ones(p.num_terms,1);
-    phi = zeros(p.simulation.ndata,p.num_terms,its,num_models);
-    error = zeros(p.simulation.ndata,its);
-    gamma=zeros(p.num_terms,its,num_models); %reset can_mod = nom_mod
-    rho = zeros(p.num_terms,its,num_models);
-    beta=[];
-    p_t = zeros(p.num_terms,its,num_models);
-    p_w = zeros(p.num_terms,its,num_models);
-    delM = zeros(p.num_terms,its,num_models);
+    phi = zeros(num_models,p.simulation.ndata,p.num_terms,its);
+   
+    gamma=zeros(num_models,p.num_terms,its); %reset can_mod = nom_mod
+    rho = zeros(num_models,p.num_terms,its);
+    for i=1:num_models, beta(i,:,:)= p.init_beta; end
+    p_t = zeros(num_models,p.num_terms,its);
+    p_w = zeros(num_models,p.num_terms,its);
+    delM = zeros(num_models,p.num_terms,its);
     mu=[];
+%     best_perttitle_p(1:a) = '';
     chosen=struct();
-   % pertnum=zeros(p.num_terms,num_models);
-   % models = [];
+    outputs= struct('y0',cell(num_models,its),'y_all',[],'y_ave',[],'dMC',[]);
+   % pertnum=zeros(p.num_terms);
+%    models = [];
     %% run hill climb
    
 %    n=5;
+% matlabpool;
+warning('off','all');
+parfor a = 1:num_models
+    warning('off','all');
 
-for a = 1:num_models
     %reset variables for each hill climb
     disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
     can_mod = p.nom_mod;
-    beta(:,:,a)=p.init_beta;
-
-    mu(:,:,a) = p.init_mu;
+     
     %     nom_mod.eqn_sym = GetEqnSym(nom_mod);
     %     can_mod.eqn_str = GetEqnStr_sym(can_mod);
 
     % choose unique set of perturbation types
 %         while pass(a) ~= 1
-            [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(:,a));
-            models(:,a) = [can_mod;chosen];
+            [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(a,:));
+            models = [can_mod;chosen];
 
 %             if a==1
 %                 pass(a)=1;
@@ -81,40 +90,67 @@ for a = 1:num_models
 %         if pass(a)
         t_opts=find(strcmpi({can_mod.terms(:).type},'int'));
         %choose starting value of rho
+        tmp_beta = beta(a,:,:);
+        tmp_rho = rho(a,:,:);
+        pert_index_a = pert_index(a,:);
         for j=1:length(t_opts)
             % if the perturbation variable is already part of the term
-            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index(j,a))),'once');
+            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index_a(j)')),'once');
             if sum(tmp)>0
                 % if the perturbation variable is already part of the
                 % perturbed term, start rho at the exponent of that term
-                rho(j,:,a)=nom_gamma(j);
+                tmp_rho(j) = nom_gamma(j);
+                %rho(a,j,:)=nom_gamma(j);
             else
                 % otherwise we are perturbing with a new variable, so rho
                 % is the size of the perturbation
-
-                rho(j,:,a) = beta(j,:,a);
-
-
+                tmp_rho(:,j,:) = tmp_beta(:,j,:);
+                
             end
         end
+        rho(a,:,:) = tmp_rho;
         % run gradient descent for chosen perturbation set
         %         if a==1
         if p.plotinloop
             h = figure;
         end
         %         end
+        p_t_a = p_t(a,:,:); 
+        p_t_a = reshape(p_t_a,size(p_t_a,2),size(p_t_a,3));
+        
+        phi_a = phi(a,:,:,:);
+        phi_a = reshape(phi_a,size(phi_a,2),size(phi_a,3),size(phi_a,4));
+%         error_a = error(a,:,:);
+        sum_abs_error_a = [];%sum_abs_error(a,:);
+        max_corr_a = []; %max_corr(a,:);
+       outputs_a = struct('y0',cell(1,its),'y_all',[],'y_ave',[],'dMC',[]);
+%        outputs_a(1:its).y_all= zeros(p.simulation.ndata,1);
+%        outputs_a(1:its).y_ave = zeros(p.simulation.ndata,1);
+%        outputs_a(1:its).dMC = zeros(p.simulation.ndata,1);
+       error = zeros(p.simulation.ndata,its);
+       beta_a = p.init_beta;
+       mu_a = p.init_mu;
+%         beta_a = reshape(beta(a,:,:),size(beta,2),size(beta,3));
+        gamma_a = gamma(a,:,:);
+        gamma_a = reshape(gamma_a,size(gamma_a,2),size(gamma_a,3));
+        rho_a = rho(a,:,:);
+        rho_a = reshape(rho_a,size(rho_a,2),size(rho_a,3));
+%         mu_a = reshape(mu(a,:,:),size(mu,2),size(mu,3));
+%         best_corr_tmp = nom_corr;
+%         best_erro_tmp = nom_error;
         for x = 2:its
+            
             %% --- model adaptation routine
             %% ----- compute sensitivity Phi
 
             %       if Produce_phi==1
 %                 try
-
-                [p_t(:,x,a),phi(:,:,x,a),error(:,x,a),sum_abs_error(x,a),max_corr(x,a),outputs(x,a),pass2(x,a)] = Sensitivity_compute(models(:,a),beta(:,x-1,a),gamma(:,x-1,a),rho(:,x-1,a),p_t(:,x-1,a),p);
-                if p.mod_adapt.MC_NLS_plot == 1
-                    p.dydtheta=outputs(x,a).dydtheta;
-                    p.MC = outputs(x,a).MC;
-                end
+                
+                [p_t_a(:,x),phi_a(:,:,x),error(:,x),sum_abs_error_a(x),max_corr_a(x),outputs_a(x),pass2] = Sensitivity_compute(models,beta_a(:,x-1),gamma_a(:,x-1),rho_a(:,x-1),p_t_a(:,x-1),p);
+%                 if p.mod_adapt.MC_NLS_plot == 1
+%                     p.dydtheta=outputs(a,x).dydtheta;
+%                     p.MC = outputs(a,x).MC;
+%                 end
                 %            delM = p_t;
 %                 catch
 %                     disp('SensitivityCompute() failed');
@@ -124,67 +160,25 @@ for a = 1:num_models
 
              % PCA
 
-             testmat = phi(:,:,x,a)'*phi(:,:,x,a);
-            %phi_index(x,a) = sqrt(min(eig(testmat))/max(eig(testmat)));
+             testmat = phi_a(:,:,x)'*phi_a(:,:,x);
+          
 
-            %           if wt_estimate
-            %
-            %               WT = [1,2]; % if w=1 wavelet='DerGauss'; w=2 wavelet='Sombrero'; if w=3 wavelet='Gauss'; if w=4 wavelet='Morlet';
-            %               output_focus = [1];
-            %               thresh_range=[1.2, 1.4, 1.6, 1.8];
-            %
-            %               try
-            %               [p_w(:,x,a),mu_adapt(:,x,a)] = PARSIM(error(:,x,a),phi(:,:,x,a),WT,thresh_range,mu(:,x-1,a),rho(:,x-1,a));
-            %               delM = p_w;
-            %               catch
-            %                   %keyboard
-            %                   pass2(x,a)=0;
-            %               end
-            %           end
-            %         gradient.models{nomcount} = models;
-            %         gradient.p_t{nomcount} = p_t;
-            %         gradient.phi{nomcount} = phi;
-            %         gradient.error{nomcount} = error;
-            %         gradient.sum_error{nomcount} = sum_abs_error;
-            %         gradient.corr{nomcount} = max_corr;
-            %         gradient.outputs{nomcount} = outputs;
-            %         gradient.p{nomcount} = p;
-            %         gradient.pass2{nomcount} = pass2;
-
-            %         save(savefile_phi, 'gradient', '-mat');
-
-
-            %       else
-            %           load(savefile_phi)
-            %
-            %           p_t(:,x,a) = gradient.p_t{nomcount}(:,x,a);
-            %           phi(:,:,x,a) = gradient.phi{nomcount}(:,:,x,a);
-            %           error(:,x,a) = gradient.error{nomcount}(:,x,a);
-            %           sum_abs_error(x,a) = gradient.sum_error{nomcount}(x,a);
-            %           max_corr(x,a) = gradient.corr{nomcount}(x,a);
-            %           outputs(x,a) = gradient.outputs{nomcount}(x,a);
-            %           p = gradient.p{nomcount};
-            %           pass2(x,a) = gradient.pass2{nomcount}(x,a);
-            %       end
-
-            %keyboard
-
-            if pass2(x,a)
+            if pass2
                 % set outputs
-                y0(:,:,x) = outputs(x,a).y0;
-                y_all(:,:,:,x)=outputs(x,a).y_all;
-                y_ave(:,:,x)=outputs(x,a).y_ave;
-                dMC(:,x,a) = outputs(x,a).dMC;
+               % y0 = outputs_a(x).y0;
+               % y_all=outputs_a(x).y_all;
+               % y_ave=outputs_a(x).y_ave;
+                dMC_a = outputs_a(x).dMC;
 
                 %% valley jumping control 
                 if p.mod_adapt.valleycontrol==1
-                    mu(:,x,a) = AvoidValleyJump(x,gamma(:,:,a),mu(:,x,a));
+                    mu_a(:,x) = AvoidValleyJump(x,gamma_a(:,:),mu_a(:,x));
                 end
 
 
                 %% ----- adapt mu
                 if p.mod_adapt.adapt_mu
-                    mu(:,x,a) = GetMu(p.Y,y_ave(:,:,x),p,p_t(:,x,a),beta(:,x-1,a));
+                    mu_a(:,x) = GetMu(p.Y,y_ave,p,p_t_a(:,x),beta_a(:,x-1));
 %                     else
 %                         mu(:,x,a) = mu(:,x-1,a);
                 end
@@ -192,87 +186,132 @@ for a = 1:num_models
 
                %% ----- calculate gamma
 %                     gamma(:,x,a) = mu(:,x,a).*p_t(:,x,a).*rho(:,x-1,a);
-                gamma(:,x,a) = mu(:,x,a).*p_t(:,x,a);
-                rho(:,x,a) = rho(:,x-1,a)+gamma(:,x,a);
+                gamma_a(:,x) = mu_a(:,x).*p_t_a(:,x);
+                rho_a(:,x) = rho_a(:,x-1)+gamma_a(:,x);
 
                 %         ----- update model
-                models(:,a) = UpdateModels_sym(models(:,a),gamma(:,x,a),p);
+                models = UpdateModels_sym(models,gamma_a(:,x),p);
 
                 %% ----- update beta size
                 if p.mod_adapt.adapt_beta
-                    for j=1:length(dMC(:,x,a))
-                        if abs(dMC(j,x,a)) < p.mod_adapt.minDMC
-                            beta(j,x,a) = beta(j,x-1,a)+p.mod_adapt.betastep;
+                    for j=1:length(dMC_a(:,x))
+                        if abs(dMC_a(j,x)) < p.mod_adapt.minDMC
+                            beta_a(j,x) = beta_a(j,x-1)+p.mod_adapt.betastep;
                         elseif abs(dMC(j)) > p.mod_adapt.maxDMC
-                            beta(j,x,a) = beta(j,x-1,a)-p.mod_adapt.betastep;
+                            beta_a(j,x) = beta_a(j,x-1)-p.mod_adapt.betastep;
                             %         elseif beta(j,end) > p.mod_adapt.p.init_beta(j)
                             %             beta(j) = beta(j) - p.mod_adapt.betastep;
                         end
-                        if beta(j,x,a) > p.mod_adapt.maxbeta
-                            beta(j,x,a) = p.mod_adapt.maxbeta;
-                        elseif beta(j,x,a) < p.mod_adapt.minbeta
-                            beta(j) = p.mod_adapt.minbeta;
+                        if beta_a(j,x) > p.mod_adapt.maxbeta
+                            beta_a(j,x) = p.mod_adapt.maxbeta;
+                        elseif beta_a(j,x) < p.mod_adapt.minbeta
+                            beta_a(j,x) = p.mod_adapt.minbeta;
                         end
                     end
                 else
-                    beta(:,x,a) = .1;
+                    beta_a(:,x) = .1;
                 end
 
                 %% --- Plot Routine
-                if p.plotinloop==1
-                    phiplot = reshape(phi(:,:,x,a),[p.simulation.ndata,p.num_terms]);
-                    %             rhoplot = reshape(rho(:,:,a),size(rho,1),size(rho,3));
-                    try
-                        perttitle=RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
-                            sum_abs_error(1:x,a),max_corr(1:x,a),...
-                            pert_index(:,a),p_t(:,x,a),phiplot,rho(:,:,a),error(:,:,a));
-                    catch
-                        keyboard
-                    end
-                end
+%                 if p.plotinloop==1
+%                     phiplot = reshape(phi_a(:,:,x),[p.simulation.ndata,p.num_terms]);
+%                     %             rhoplot = reshape(rho_a(:,:),size(rho,1),size(rho,3));
+%                     try
+%                         perttitle=RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
+%                             sum_abs_error_a(1:x),max_corr_a(1:x),...
+%                             pert_index(a,:),p_t_a(:,x),phiplot,rho_a(:,:),error);
+%                     catch
+%                         keyboard
+%                     end
+%                 end
                 %     end
                 %% --- Update best model
                 if p.mod_adapt.bestpass
                     %update best model
                     %     if sum_abs_error(a,end)<best_error
-                    if max_corr(x,a)/sum_abs_error(x,a) > best_corr/best_error
+                    if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
 
-                        best_mod=models(1,a);
+%                         best_mod_p(a)=models(a,1);
 
-                        best_error=sum_abs_error(x,a);
-                        best_corr = max_corr(x,a);
-                        y_best = y_ave(:,1,x);
-                        best_rho = rho(:,x,a);
-                        best_rho_hist = rho;
-                        best_models = models(:,a);
-                        best_pertnum=pert_index(:,a);
-                        best_mu = mu(:,x,a);
-                        best_beta = beta(:,x,a);
-                        endits = x;
-                        if p.plotinloop==1
-                            best_perttitle = perttitle;
-                        else
-                            best_perttitle='';
-                        end
-                        continueontosecondphase=1;
+                        best_error_p(a)=sum_abs_error_a(x);
+                        best_corr_p(a) = max_corr_a(x);
+                        y_best_p(:,a) = outputs_a(x).y0(:,1);
+                        best_rho_p(:,a) = rho_a(:,x);
+%                         best_rho_hist = rho_a;
+                        best_models_p(:,a) = models;
+                        best_pertnum_p(a,:) =pert_index(a,:);
+                        best_mu_p(:,a) = mu_a(:,x);
+                        best_beta_p(:,a) = beta_a(:,x);
+%                         endits = x;
+%                         if p.plotinloop==1
+%                             best_perttitle_p(a) = perttitle;
+%                         else
+%                             best_perttitle_p(a)='';
+%                         end
+%                         continueontosecondphase(a)=1;
                     end
 
                 end
+            else
+                p_t_a(:,x:its) = zeros(
+                phi_a(:,:,x):its) = zeros(
+                error(:,x:its) = 
+                sum_abs_error_a(x:its)
+                max_corr_a(x:its)=
+                outputs_a(x:its)
+                break;
             end
         end
-        clearvars y0 y_all y_ave
+        
+        p_t(a,:,:) = p_t_a; 
+        phi(a,:,:,:) = phi_a; 
+%         error(a,:,:) = error_a;
+        sum_abs_error(a,:) =  sum_abs_error_a; 
+        max_corr(a,:) =  max_corr_a;
+        outputs(a,:) =  outputs_a;
+        beta(a,:,:) = beta_a;
+        gamma(a,:,:) =  gamma_a;
+        rho(a,:,:) =  rho_a; 
+        mu(a,:,:) = mu_a;
+        
+        %clearvars y0 y_all y_ave
 %         end
     close 
-   end
+end
+% choose best from parallel results
+best_error = nom_error;
+best_corr = nom_corr;
+for a=1:num_models
+    if best_corr_p(a)/best_error_p(a) > best_corr/best_error
 
+%         best_mod=best_mod_p(a);
+
+        best_error = best_error_p(a);
+        best_corr = best_corr_p(a);
+        y_best = y_best_p(a);
+        best_rho = best_rho_p(:,a);
+%                         best_rho_hist = rho_a;
+        best_models = best_models_p(:,a);
+        best_pertnum = best_pertnum_p(a,:);
+        best_mu = best_mu_p(:,a);
+        best_beta = best_beta_p(:,a);
+%                         endits = x;
+%         if p.plotinloop==1
+%             best_perttitle = best_perttitle_p(a);
+%         else
+%             best_perttitle='';
+%         end
+        continueontosecondphase=1;
+    end
+end
 if continueontosecondphase
 %% plot winner from first round
 if p.plotinloop
     figure;
-    plot(y_best,'r');
+    plot(y_best,'r'); hold on;
     plot(p.yhat,'--g');
-    plot(p.Y,'b'); hold on;
-    title(['Best from initial run' best_perttitle]);
+    plot(p.Y,'b'); 
+    title(['Best from initial run: $\hat{y} = ' char(best_models(1).eqn_form) '$'],'interpreter','latex');
     l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
     set(l,'interpreter','latex','Fontsize',12);
 end
@@ -411,6 +450,7 @@ for x = itsstart:its2
 
 			if max_corr2(x)>win_criteria
         %         best_gamma = gamhist2(:,x);
+                disp(['Correlation criteria achieved (max_corr2 = ' num2str(max_corr2(x)) ')']);
                 its_FTW = x;
                 break;
             end
@@ -419,17 +459,18 @@ end
 if p.plotinloop2
         figure;
         plot(p.yhat,'--g'); hold on;
-        plot(y_best,'r'); 
-        plot(p.Y,'b'); %hold on;
-        title(['Best final model' best_perttitle]);
-        l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
+         plot(p.Y,'b');
+        plot(y_best,'.-r'); 
+        %hold on;
+        title(['Best final model: $\hat{y} =' char(best_models(1).eqn_form) '$'],'interpreter','latex');
+        l=legend('$\hat{y}_0$','$y^*$','$\hat{y}_{end}$');
         set(l,'interpreter','latex','Fontsize',12);
     end
 
 end
 if p.save==1
     
-    savefile = [p.savepath p.simulation.sim_model '_PARSIM_randcount' num2str(randcount) '_mu' ...
+    savefile = [p.savepath p.simulation.sim_model '_randcount' num2str(randcount) '_mu' ...
         num2str(p.mod_adapt.mustart(1)*100) '_dev' num2str(deviation*100) '_its' num2str(its) '-' num2str(its2)]
 
     save(savefile); 
