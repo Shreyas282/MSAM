@@ -221,7 +221,7 @@ for opt =0
             p.wt_estimate=opt;
     
             %% Run MSAM
-             t=cputime;
+            tic;
             if parallel 
                 if matlabpool('size') == 0% checking to see if my pool is already open
                  matlabpool local;
@@ -232,7 +232,7 @@ for opt =0
             else
                 out = MSAM(p,its,its2);
             end
-            disp(['Total CPU time: ' num2str(cputime-t)]);
+            toc;
         end
     end
 end
