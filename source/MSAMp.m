@@ -9,7 +9,7 @@ disp('///////////////////////////////');
 
 disp(['Number of round robin iterations: ' num2str(its)]);
 disp(['Number of final adaptation iterations: ' num2str(its2)]);
-
+digits(6);
 if ~p.continuept2    
      colors = ['r','b','g','m','c'];
     %% initial error, correlation and string distance
@@ -18,16 +18,18 @@ if ~p.continuept2
 %pert_index = zeros(length(p.intvars),p.num_terms);
     a = repmat({1:length(p.intvars)},1,p.num_terms);
     pert_index = allcomb(a{:});
+    pert_index = shuffle(pert_index,1);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
-    tmp = corrcoef(p.Y,p.yhat(:,1));
-    nom_corr = tmp(1,2);
-   
+%     tmp = corrcoef(p.Y,p.yhat(:,1));
+%     nom_corr = tmp(1,2);
+    nom_corr = R2(p.Y,p.yhat(:,1));
     sum_abs_error=zeros(num_models,its); 
     max_corr=zeros(num_models,its); 
     best_corr_p  = nom_corr*ones(1,num_models);
     best_error_p = nom_error*ones(1,num_models);
     best_models(1:num_models) = p.nom_mod;
     best_mod = p.nom_mod; % best model from all runs
+    best_rho = zeros(p.num_terms,1);
     best_rho_p = zeros(p.num_terms,num_models);
     best_mu_p = repmat(p.mod_adapt.mustart,1,num_models);
     best_beta_p = zeros(p.num_terms,num_models);
@@ -138,6 +140,7 @@ parfor a = 1:num_models
 %         mu_a = reshape(mu(a,:,:),size(mu,2),size(mu,3));
 %         best_corr_tmp = nom_corr;
 %         best_erro_tmp = nom_error;
+        model_disp = 0;
         for x = 2:its
             
             %% --- model adaptation routine
@@ -165,9 +168,9 @@ parfor a = 1:num_models
 
             if pass2
                 % set outputs
-               % y0 = outputs_a(x).y0;
-               % y_all=outputs_a(x).y_all;
-               % y_ave=outputs_a(x).y_ave;
+               y0 = outputs_a(x).y0;
+%                y_all=outputs_a(x).y_all;
+               y_ave=outputs_a(x).y_ave;
                 dMC_a = outputs_a(x).dMC;
 
                 %% valley jumping control 
@@ -216,15 +219,20 @@ parfor a = 1:num_models
 %                 if p.plotinloop==1
 %                     phiplot = reshape(phi_a(:,:,x),[p.simulation.ndata,p.num_terms]);
 %                     %             rhoplot = reshape(rho_a(:,:),size(rho,1),size(rho,3));
-%                     try
-%                         perttitle=RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
+%                         perttitle=RunPlotRoutinep(h,a,x,its,y0,p,colors,...
 %                             sum_abs_error_a(1:x),max_corr_a(1:x),...
 %                             pert_index(a,:),p_t_a(:,x),phiplot,rho_a(:,:),error);
-%                     catch
-%                         keyboard
-%                     end
+% 
 %                 end
-                %     end
+                    
+                if max_corr_a(x)/sum_abs_error_a(x) == max_corr_a(x-1)/sum_abs_error_a(x-1) 
+                     p_t_a(:,x:its) = zeros(size(p_t_a,1),its-x+1);
+                    phi_a(:,:,x:its) = zeros(size(phi_a,1),size(phi_a,2),its-x+1);
+                    error(:,x:its) = 54321*ones(size(error,1),its-x+1);
+                    sum_abs_error_a(x:its)=54321*ones(1,its-x+1);
+                    max_corr_a(x:its)=0;
+                break;
+                end
                 %% --- Update best model
                 if p.mod_adapt.bestpass
                     %update best model
@@ -232,7 +240,10 @@ parfor a = 1:num_models
                     if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
 
 %                         best_mod_p(a)=models(a,1);
-
+%                         if ~model_disp
+%                             disp(['best model updated: y = ' char(models(1).eqn_form)]); 
+%                             model_disp=true; 
+%                         end
                         best_error_p(a)=sum_abs_error_a(x);
                         best_corr_p(a) = max_corr_a(x);
                         y_best_p(:,a) = outputs_a(x).y0(:,1);
@@ -281,6 +292,7 @@ end
 % choose best from parallel results
 best_error = nom_error;
 best_corr = nom_corr;
+continueontosecondphase=0;
 for a=1:num_models
     if best_corr_p(a)/best_error_p(a) > best_corr/best_error
 
@@ -288,7 +300,7 @@ for a=1:num_models
 
         best_error = best_error_p(a);
         best_corr = best_corr_p(a);
-        y_best = y_best_p(a);
+        y_best = y_best_p(:,a);
         best_rho = best_rho_p(:,a);
 %                         best_rho_hist = rho_a;
         best_models = best_models_p(:,a);
@@ -336,7 +348,9 @@ end
     % delM2=p_t2;
     pertlist='';
     itsstart=2;
-    end
+else
+    disp('No better model forms found.');
+end
 
 elseif p.continuept2
     fprintf(['Continuing iterations...\n']);

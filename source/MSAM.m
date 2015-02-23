@@ -49,7 +49,7 @@ if ~p.continuept2
     %% run hill climb
    
 %    n=5;
-
+ continueontosecondphase=0;
 for a = 1:num_models
     %reset variables for each hill climb
     disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
@@ -267,15 +267,15 @@ for a = 1:num_models
 
 if continueontosecondphase
 %% plot winner from first round
-if p.plotinloop
-    figure;
-    plot(y_best,'r');
-    plot(p.yhat,'--g');
-    plot(p.Y,'b'); hold on;
-    title(['Best from initial run' best_perttitle]);
-    l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
-    set(l,'interpreter','latex','Fontsize',12);
-end
+	if p.plotinloop
+		figure;
+		plot(y_best,'r');
+		plot(p.yhat,'--g');
+		plot(p.Y,'b'); hold on;
+		title(['Best from initial run' best_perttitle]);
+		l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
+		set(l,'interpreter','latex','Fontsize',12);
+	end
     
     
     %% Gradient descent for best perturbation case, starting from best model
@@ -297,7 +297,9 @@ end
     % delM2=p_t2;
     pertlist='';
     itsstart=2;
-    end
+else
+    disp('No better model forms found.');
+end
 
 elseif p.continuept2
     fprintf(['Continuing iterations...\n']);

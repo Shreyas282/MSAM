@@ -87,21 +87,22 @@ end
         if bite
             
       %% get NLS structural error
-      if p.mod_adapt.mc_opt2 < 2
-        [p_t,phi] = StructError(y_ave(:,1),y_ave(:,2:end),p.Y,dMC,p.mod_adapt.struct_err_opt);
-      else
-        [p_t,phi] = StructErrorAdd(y_ave(:,1),y_ave(:,2:end),p.Y,dPhiT_dG,p.mod_adapt.struct_err_opt); 
-      end
+      [p_t,phi] = StructError(y0(:,1),y0(:,2:end),p.Y,dMC,p.mod_adapt.struct_err_opt);
+ 
         if (any(isnan(p_t)))
             disp('NaN values in p_t');
             keyboard
         end
     % calculate error and correlation
-        error = p.Y-y_ave(:,1);
-        sum_abs_error = sum(abs(p.Y-y_ave(:,1)));
-%         max_corr= max(xcorr(p.Y,y_ave(:,1),'coeff')); 
-        tmp = corrcoef(p.Y,y_ave(:,1));
-        max_corr = abs(tmp(1,2));
+%         error = p.Y-y_ave(:,1);
+%         sum_abs_error = sum(abs(p.Y-y_ave(:,1)));
+% %         max_corr= max(xcorr(p.Y,y_ave(:,1),'coeff')); 
+%         tmp = corrcoef(p.Y,y_ave(:,1));
+%         max_corr = (tmp(1,2));
+        error = p.Y - y0(:,1);
+        sum_abs_error = sum(abs(p.Y-y0(:,1)));
+        max_corr = R2(p.Y,y0(:,1));
+        
 outputs.y0 = y0;
 outputs.y_all= y_all;
 outputs.y_ave = y_ave;

@@ -11,7 +11,7 @@ its2 = 5; % number of iterations for selected perturbation set
 
 %% saving options
 p.save=0;
-p.savepath = 'Control_Data/Controller_';
+p.savepath = 'VIV/VIV_';
 
     continueontosecondphase=0;
     gamma= [1.0; 1.0];
@@ -24,93 +24,45 @@ p.savepath = 'Control_Data/Controller_';
 % Produce_phi=1;
 % savefile_phi = 'Results\harm_phi_record.mat';
 %% Model Setup
-syms P I D 
-p.intvars = [P, I D]; % internal variables of the system
+syms qddot qdot q
+p.intvars = [qddot qdot q]; % internal variables of the system
 % p.absintvars = [abs(x1),abs(x2),abs(x3)];
-p.absintvars = [abs(P),abs(I),abs(D)];
-p.mod_adapt.useabs = 0;
+p.absintvars = [abs(qddot),abs(qdot),abs(q)];
+p.mod_adapt.useabs = 1;
 p.extvars = []; % external input variables of the system
 p.allvars = [p.intvars p.extvars];
 num_vars = length(p.allvars);
-p.simulation.input_set = 0;
-p.simulation.IC=0;
 
-%% target controller output
-Sys = 'DC1';
-if strcmp(Sys,'DC1')
-    
-    
-    p.simulation.time_span=15;
-    p.simulation.R_filter = 10000; % 10K ohm
-    p.simulation.C_filter = 30*10^-6; %30 microFarad
-    p.simulation.num1 = [1, 0.71];
-    p.simulation.den1= [4.4 3.7 1];
-    p.simulation.ndata=128;
-    n = p.simulation.ndata;
-    p.simulation.sim_model='DC1_MSA';
-    
-
-    Tset = 2.3;
-    %Zeta = 1.2;
-    Zeta=1.2;
-    %Mp = exp((-Zeta*pi)/(sqrt(1-Zeta^2)));
-    Wn = 4/(Tset*Zeta);
-    Targ_Spd = 2500; %Target motor speed in RPM
-    Cm = 641.51; %Motor Speed conversion in RPM per volt
-    Vref=Targ_Spd/Cm;
-    p.simulation.Vref = Vref;
-    sys = tf(Wn^2,[1 (2*Zeta*Wn) Wn^2]);
-    t_s=p.simulation.time_span/(p.simulation.ndata-1);
-    T = 0:t_s:p.simulation.time_span;
-
-    p.Y = step(Vref*sys,T);
-    %p.cons = {'Tk', 'Ti','Td';
-    %    2.5496    0.7946    1.7958};
-    p.cons = {'Tk', 'Ti','Td';
-        5.5933    1.1417    4.5146};
-    
-% elseif strcmp(Sys,'DC2')
-%     p.simulation.sim_model='Sys2_MSA';
-%     p.simulation.time_span=400;
-%     p.cons = {'Tk', 'Ti','Td';
-%          0.88,28.01,5.45};
-%      
-% elseif strcmp(Sys,'Sys3')
-%     p.simulation.sim_model='Sys3_MSA';
-%     p.simulation.time_span=1000;
-%     p.cons = {'Tk', 'Ti','Td';
-%          0.64,50.40,15.56};
-% 
-% elseif strcmp(Sys,'Sys4')
-%     p.simulation.sim_model='Sys4_MSA';
-%     p.simulation.time_span=200;
-%     p.cons = {'Tk', 'Ti','Td';
-%           2.5568    0.7933    1.7947};
-end
-    
+%% load target
+viv = load('..\..\..\VIV\VIV_data.mat');
+p.cons = {'A', 'eps', 'St', 'D','U'; 
+           viv.A,  viv.eps, viv.St, viv.D, viv.U(1)};
 for k=1:length(p.cons(1,:))
-    eval(['syms ' p.cons{1,k}])
+    eval(['syms ' p.cons{1,k} ';']);
 end
+set = 1;
+% p.Y = -viv.A/viv.D*viv.ddy_50s(set,:)';
+% p.qddot = viv.ddforce_50s(set,:)';
+% p.qdot = viv.dforce_50s(set,:)';
+% p.q = viv.force_50s(set,:)';
+p.Y = -viv.A/viv.D*reshape(viv.ddy_50s,size(viv.ddy_50s,1)*size(viv.ddy_50s,2),1);
+p.qddot = reshape(viv.ddforce_50s,size(viv.ddforce_50s,1)*size(viv.ddforce_50s,2),1);
+p.qdot = reshape(viv.dforce_50s,size(viv.dforce_50s,1)*size(viv.dforce_50s,2),1);
+p.q = reshape(viv.force_50s,size(viv.force_50s,1)*size(viv.force_50s,2),1);
 
-exp(1) = 2; r1 = exp(1);
-exp(2) = 3; r2 = exp(2);
-p.mod_adapt.exp = exp;
+p.simulation.ndata = length(p.q);
 
-p.simulation.ndata=128;
+    
+% p.mod_adapt.exp = exp;
+
+% p.simulation.ndata=128;
 p.simulation.partitioning=0;
 p.mod_adapt.output_dydtheta=0;
 
-% get target output
-limit1=1;
-limit2=72;
-limit3=1;
-limit4=128;
-thresh=0.2;
-
-p.simulation.ndata=128;
-n = p.simulation.ndata;
+% p.simulation.ndata=128;
+% n = p.simulation.ndata;
 % p.simulation.time_span=4;
-p.simulation.samp_time=p.simulation.time_span/(n-1);
+% p.simulation.samp_time=p.simulation.time_span/(n-1);
 
 % t=0:1:n-1;
 % %load y_d1
@@ -125,19 +77,21 @@ p.simulation.samp_time=p.simulation.time_span/(n-1);
 % p = RunCtrlModel(target,p);
 
 % samp_time=time_span/(n-1);
-p.mod_adapt.algebra = 0;
+p.mod_adapt.algebra = 1;
 
 p.continuept2 = 0; %run more iterations on part 2
 
     
 %% nominal model
-p.nom_mod.eqn_sym = Tk*P + Ti*I + Td*D;
-p.nom_mod.eqn_form = p.nom_mod.eqn_sym;
+p.nom_mod.eqn_sym = (qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot...
+                    + (2*pi*St*U/D)^2*q);
+
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
 p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars);
-disp(['nominal model: ' char(p.nom_mod.eqn_sym)]);
+p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
+disp(['nominal model: ' char(p.nom_mod.eqn_form)]);
 %% model adaptation settings
 p.mod_adapt.beta_start = .1*ones(p.num_terms,1);
 p.init_beta = repmat(p.mod_adapt.beta_start,1,its);
@@ -158,7 +112,7 @@ p.mod_adapt.mu_min = 0.01;
 p.mod_adapt.struct_err_opt = 'error';
 p.mod_adapt.corr_trigger = 1;
 p.mod_adapt.err_trigger = 5;
-p.mod_adapt.mc_opt='pardif'; % model complexity measure type
+p.mod_adapt.mc_opt='pertsize'; % model complexity measure type
 p.mod_adapt.mc_opt2=0;
 % options for p.mc_opt:
 % 'pardif' - dM = norm of difference in parameter sensitivity
@@ -192,7 +146,7 @@ warning('off','all');
 %
 %      try
 %% nominal model output
-p.yhat = RunCtrlModel(p.nom_mod.eqn_str,p);
+p.yhat = EvalModel(p.nom_mod.eqn_sym,p);
 
 %     catch %#ok<*CTCH>
 %         disp('WARNING: Nominal model did not simulate succesfully.');
@@ -205,7 +159,7 @@ p.yhat = RunCtrlModel(p.nom_mod.eqn_str,p);
 %     figure(jbm);
 %     subplot(121)
 %     plot(p.Y,'k'); hold on;
-%     plot(yhat,'xk');
+%     plot(p.yhat,'xk');
 %     l=legend('$y^*(M^*,\Theta^*,t)$','Initial $\hat{y}(\hat{M},\hat{\Theta},t)$');
 %     set(l,'interpreter','latex','fontsize',14);
 %     xlabel('t','fontsize',14);
@@ -221,19 +175,18 @@ for opt =0
             p.wt_estimate=opt;
     
             %% Run MSAM
-             t=cputime;
+            tic;
             if parallel 
                 if matlabpool('size') == 0% checking to see if my pool is already open
                  matlabpool local;
                 end
-               
                 out = MSAMp(p,its,its2);
-                disp(['Total CPU time: ' num2str(cputime-t)]);
+%                 disp(['Total CPU time: ' num2str(cputime-t)]);
                 matlabpool close;
             else
-                out = MSAM(p,its,its2);
+                out = MSAMp(p,its,its2);
             end
-            disp(['Total CPU time: ' num2str(cputime-t)]);
+            toc;
         end
     end
 end

@@ -49,7 +49,7 @@ if ~p.continuept2
     %% run hill climb
    
 %    n=5;
-
+ continueontosecondphase=0;
 for a = 1:num_models
     %reset variables for each hill climb
     disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
@@ -267,15 +267,15 @@ for a = 1:num_models
 
 if continueontosecondphase
 %% plot winner from first round
-if p.plotinloop
-    figure;
-    plot(y_best,'r');
-    plot(p.yhat,'--g');
-    plot(p.Y,'b'); hold on;
-    title(['Best from initial run' best_perttitle]);
-    l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
-    set(l,'interpreter','latex','Fontsize',12);
-end
+	if p.plotinloop
+		figure;
+		plot(y_best,'r');
+		plot(p.yhat,'--g');
+		plot(p.Y,'b'); hold on;
+		title(['Best from initial run' best_perttitle]);
+		l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
+		set(l,'interpreter','latex','Fontsize',12);
+	end
     
     
     %% Gradient descent for best perturbation case, starting from best model
@@ -297,7 +297,9 @@ end
     % delM2=p_t2;
     pertlist='';
     itsstart=2;
-    end
+else
+    disp('No better model forms found.');
+end
 
 elseif p.continuept2
     fprintf(['Continuing iterations...\n']);
@@ -319,7 +321,7 @@ for x = itsstart:its2
     %% --- model adaptation routine
     try
         
-        [p_t2(:,x),phi2(:,:,x),error2(:,x),sum_abs_error2(x),max_corr2(x),outputs,p,pass3] = Sensitivity_compute(best_models,beta2(:,x-1),gamma2(:,x-1),rho2(:,x-1),mu2(:,x-1),p_t2(:,x-1),p);
+        [p_t2(:,x),phi2(:,:,x),error2(:,x),sum_abs_error2(x),max_corr2(x),outputs,pass3] = Sensitivity_compute(best_models,beta2(:,x-1),gamma2(:,x-1),rho2(:,x-1),p_t2(:,x-1),p);
         if p.mod_adapt.MC_NLS_plot == 1
             p.dydtheta=outputs(x).dydtheta;
             p.MC = outputs(x).MC;
