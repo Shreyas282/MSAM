@@ -23,7 +23,8 @@ if ~p.continuept2
    
     max_corr = nom_corr;
     best_corr  = nom_corr;
-    best_gamma = [0,0];
+    %best_gamma = [0,0];
+    best_rho = zeros(p.num_terms,1);
     best_error = nom_error;
     sum_abs_error=nom_error;
     best_mod = p.nom_mod; % best model from all runs
@@ -418,6 +419,8 @@ for x = itsstart:its2
             end
     end
 end
+
+end
 if p.plotinloop2
         figure;
         plot(p.yhat,'--g'); hold on;
@@ -427,8 +430,6 @@ if p.plotinloop2
         l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
         set(l,'interpreter','latex','Fontsize',12);
     end
-
-end
 if p.save==1
     
     savefile = [p.savepath p.simulation.sim_model '_PARSIM_randcount' num2str(randcount) '_mu' ...

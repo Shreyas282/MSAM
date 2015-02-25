@@ -1,4 +1,4 @@
-%% controller tuning
+%% VIV force equation
 
 clear 
 
@@ -6,12 +6,12 @@ clear
 
  %% number of iterations
 its = 10; % number of iterations for each perturbation case
-its2 = 5; % number of iterations for selected perturbation set
+its2 = 10; % number of iterations for selected perturbation set
 
 
 %% saving options
-p.save=0;
-p.savepath = 'VIV/VIV_';
+p.save=1;
+
 
     continueontosecondphase=0;
     gamma= [1.0; 1.0];
@@ -24,33 +24,42 @@ p.savepath = 'VIV/VIV_';
 % Produce_phi=1;
 % savefile_phi = 'Results\harm_phi_record.mat';
 %% Model Setup
-syms qddot qdot q
-p.intvars = [qddot qdot q]; % internal variables of the system
+syms QDDOT QDOT Q
+p.intvars = [QDDOT QDOT Q]; % internal variables of the system
 % p.absintvars = [abs(x1),abs(x2),abs(x3)];
-p.absintvars = [abs(qddot),abs(qdot),abs(q)];
+p.absintvars = [abs(QDDOT),abs(QDOT),abs(Q)];
 p.mod_adapt.useabs = 1;
 p.extvars = []; % external input variables of the system
 p.allvars = [p.intvars p.extvars];
 num_vars = length(p.allvars);
 
 %% load target
-viv = load('..\..\..\VIV\VIV_data.mat');
-p.cons = {'A', 'eps', 'St', 'D','U'; 
-           viv.A,  viv.eps, viv.St, viv.D, viv.U(1)};
+viv = load('problems\VIV\VIV_data.mat');
+for s=1:19
+    p.savepath = ['D:\MSAM\VIV\VIV_' num2str(s)];
+set = s;
+p.cons = par_estimate_VIV_lin(set);
+A_val = 12;
+% eps_val = 0.0138;
+% p.cons = {'A', 'eps', 'St', 'D','U'; 
+%            A_val,  eps_val, viv.St, viv.D, viv.U(set)};
+% p.cons = {'B', 'C', 'E'; 
+% %           -1.1584 , -2.7181, -217.4027};
+%       2.2732    -0.4136    273.9277};
+% make parameters symbolic
 for k=1:length(p.cons(1,:))
     eval(['syms ' p.cons{1,k} ';']);
 end
-set = 1;
 % p.Y = -viv.A/viv.D*viv.ddy_50s(set,:)';
 % p.qddot = viv.ddforce_50s(set,:)';
 % p.qdot = viv.dforce_50s(set,:)';
 % p.q = viv.force_50s(set,:)';
-p.Y = -viv.A/viv.D*reshape(viv.ddy_50s,size(viv.ddy_50s,1)*size(viv.ddy_50s,2),1);
-p.qddot = reshape(viv.ddforce_50s,size(viv.ddforce_50s,1)*size(viv.ddforce_50s,2),1);
-p.qdot = reshape(viv.dforce_50s,size(viv.dforce_50s,1)*size(viv.dforce_50s,2),1);
-p.q = reshape(viv.force_50s,size(viv.force_50s,1)*size(viv.force_50s,2),1);
+p.Y = -A_val/viv.D*reshape(viv.ddy_50s(set,:)',size(viv.ddy_50s(set,:)',1)*size(viv.ddy_50s(set,:)',2),1);
+p.QDDOT = reshape(viv.ddforce_50s(set,:)',size(viv.ddforce_50s(set,:)',1)*size(viv.ddforce_50s(set,:)',2),1);
+p.QDOT = reshape(viv.dforce_50s(set,:)',size(viv.dforce_50s(set,:)',1)*size(viv.dforce_50s(set,:)',2),1);
+p.Q = reshape(viv.force_50s(set,:)',size(viv.force_50s(set,:)',1)*size(viv.force_50s(set,:)',2),1);
 
-p.simulation.ndata = length(p.q);
+p.simulation.ndata = length(p.Q);
 
     
 % p.mod_adapt.exp = exp;
@@ -83,9 +92,9 @@ p.continuept2 = 0; %run more iterations on part 2
 
     
 %% nominal model
-p.nom_mod.eqn_sym = (qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot...
-                    + (2*pi*St*U/D)^2*q);
-
+% p.nom_mod.eqn_sym = (qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot...
+%                     + (2*pi*St*U/D)^2*q);
+p.nom_mod.eqn_sym = B*QDDOT + C*QDOT+E*Q;
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
@@ -93,18 +102,18 @@ p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars);
 p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
 disp(['nominal model: ' char(p.nom_mod.eqn_form)]);
 %% model adaptation settings
-p.mod_adapt.beta_start = .1*ones(p.num_terms,1);
+p.mod_adapt.beta_start = .01*ones(p.num_terms,1);
 p.init_beta = repmat(p.mod_adapt.beta_start,1,its);
-p.mod_adapt.maxbeta = 0.3;
-p.mod_adapt.minbeta = .01;
-p.mod_adapt.betastep = .01;
+p.mod_adapt.maxbeta = 0.1;
+p.mod_adapt.minbeta = .001;
+p.mod_adapt.betastep = .001;
 % betahist = [beta,zeros(length(beta),its)];
 p.mod_adapt.minDMC = .1;
 p.mod_adapt.maxDMC = 1;
 p.mod_adapt.adapt_beta = 0;    
 %mu settings
 p.mod_adapt.adapt_mu = 0;
-p.mod_adapt.mustart = repmat(0.15,p.num_terms,1); %starting confidence
+p.mod_adapt.mustart = repmat(0.5,p.num_terms,1); %starting confidence
 p.init_mu = repmat(p.mod_adapt.mustart,1,its);
 p.mod_adapt.agg = [15, .05]; %mu change aggressiveness
 p.mod_adapt.mu_min = 0.01;
@@ -112,7 +121,7 @@ p.mod_adapt.mu_min = 0.01;
 p.mod_adapt.struct_err_opt = 'error';
 p.mod_adapt.corr_trigger = 1;
 p.mod_adapt.err_trigger = 5;
-p.mod_adapt.mc_opt='pertsize'; % model complexity measure type
+p.mod_adapt.mc_opt='pardif'; % model complexity measure type
 p.mod_adapt.mc_opt2=0;
 % options for p.mc_opt:
 % 'pardif' - dM = norm of difference in parameter sensitivity
@@ -127,7 +136,7 @@ p.mod_adapt.bestpass =1;
 p.mod_adapt.valleycontrol = 1;
 %% plotting options
 p.plotinloop=0;
-p.plotinloop2=1;
+p.plotinloop2=0;
 p.mod_adapt.MC_NLS_plot =0;
     
 warning('off','all');
@@ -182,13 +191,14 @@ for opt =0
                 end
                 out = MSAMp(p,its,its2);
 %                 disp(['Total CPU time: ' num2str(cputime-t)]);
-                matlabpool close;
+%                 matlabpool close;
             else
-                out = MSAMp(p,its,its2);
+                out = MSAM(p,its,its2);
             end
             toc;
         end
     end
+end
 end
 % end
 %% Plot Best

@@ -1,7 +1,7 @@
 function out = MSAMp(p,its,its2)
 %Model Structure Adaptation Method
 % William La Cava 2015
-
+try
 out=[];
 disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
 disp(' Running MSAMp version 1.0.0-wgl');
@@ -65,7 +65,7 @@ parfor a = 1:num_models
     warning('off','all');
 
     %reset variables for each hill climb
-    disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
+    
     can_mod = p.nom_mod;
      
     %     nom_mod.eqn_sym = GetEqnSym(nom_mod);
@@ -75,7 +75,8 @@ parfor a = 1:num_models
 %         while pass(a) ~= 1
             [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(a,:));
             models = [can_mod;chosen];
-
+    disp(['Running model adaptation ' num2str(a) ' of ' ...
+           num2str(num_models) ': y = ' char(models(1).eqn_form)]);
 %             if a==1
 %                 pass(a)=1;
 %             end
@@ -200,7 +201,7 @@ parfor a = 1:num_models
                     for j=1:length(dMC_a(:,x))
                         if abs(dMC_a(j,x)) < p.mod_adapt.minDMC
                             beta_a(j,x) = beta_a(j,x-1)+p.mod_adapt.betastep;
-                        elseif abs(dMC(j)) > p.mod_adapt.maxDMC
+                        elseif abs(dMC_a(j,x)) > p.mod_adapt.maxDMC
                             beta_a(j,x) = beta_a(j,x-1)-p.mod_adapt.betastep;
                             %         elseif beta(j,end) > p.mod_adapt.p.init_beta(j)
                             %             beta(j) = beta(j) - p.mod_adapt.betastep;
@@ -318,15 +319,15 @@ for a=1:num_models
 end
 if continueontosecondphase
 %% plot winner from first round
-if p.plotinloop
-    figure;
-    plot(y_best,'r'); hold on;
-    plot(p.yhat,'--g');
-    plot(p.Y,'b'); 
-    title(['Best from initial run: $\hat{y} = ' char(best_models(1).eqn_form) '$'],'interpreter','latex');
-    l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
-    set(l,'interpreter','latex','Fontsize',12);
-end
+    if p.plotinloop
+        figure;
+        plot(y_best,'r'); hold on;
+        plot(p.yhat,'--g');
+        plot(p.Y,'b'); 
+        title(['Best from initial run: $\hat{y} = ' char(best_models(1).eqn_form) '$'],'interpreter','latex');
+        l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
+        set(l,'interpreter','latex','Fontsize',12);
+    end
     
     
     %% Gradient descent for best perturbation case, starting from best model
@@ -423,7 +424,7 @@ for x = itsstart:its2
             for j=1:length(dMC2(:,x))
                 if abs(dMC2(j,x)) < p.mod_adapt.minDMC
                     beta2(j,x) = beta2(j,x)+p.mod_adapt.betastep;
-                elseif abs(dMC(j)) > p.mod_adapt.maxDMC
+                elseif abs(dMC2(j)) > p.mod_adapt.maxDMC
                     beta2(j,x) = beta2(j,x)-p.mod_adapt.betastep;
                     %         elseif beta(j,end) > p.mod_adapt.p.init_beta(j)
                     %             beta(j) = beta(j) - p.mod_adapt.betastep;
@@ -457,7 +458,8 @@ for x = itsstart:its2
         
                 best_error=sum_abs_error2(x);
                 best_corr = max_corr2(x);
-                y_best = y_ave2(:,1,end);
+                y_best = y02(:,1,x);
+%                 y_best = y_ave2(:,1,end);
                 best_rho = rho2(:,x);
         
             end
@@ -470,6 +472,9 @@ for x = itsstart:its2
             end
     end
 end
+
+
+end 
 if p.plotinloop2
         figure;
         plot(p.yhat,'--g'); hold on;
@@ -479,21 +484,31 @@ if p.plotinloop2
         title(['Best final model: $\hat{y} =' char(best_models(1).eqn_form) '$'],'interpreter','latex');
         l=legend('$\hat{y}_0$','$y^*$','$\hat{y}_{end}$');
         set(l,'interpreter','latex','Fontsize',12);
-    end
-
 end
 if p.save==1
     
-    savefile = [p.savepath p.simulation.sim_model '_randcount' num2str(randcount) '_mu' ...
-        num2str(p.mod_adapt.mustart(1)*100) '_dev' num2str(deviation*100) '_its' num2str(its) '-' num2str(its2)]
+    savefile = [p.savepath '_its' num2str(its) '-' num2str(its2)]
 
     save(savefile); 
-    best_mod.eqn_sym
+%     best_mod.eqn_sym
 end
-out.best_mod = best_mod;
+out.nom_mod = p.nom_mod;
+out.nom_error = nom_error;
+out.nom_corr = nom_corr;
+out.best_mod = best_models(1);
 out.y_best = y_best;
 out.best_error = best_error;
 out.best_corr = best_corr;
 out.best_rho=best_rho;
-
+if continueontosecondphase
+disp(['best model: ' char(out.best_mod.eqn_form)]);
+disp(['error improvement: ' num2str((out.nom_error-out.best_error)/out.nom_error*100) '%']);
+disp(['correlation improvement: ' num2str((out.best_corr-out.nom_corr)/out.nom_corr*100) '%']);
+end
+catch ME
+    disp(['error: ' ME.message]); 
+    disp(ME.stack(1));
+    disp('execution paused in MSAMp.m.');
+    keyboard
+end
 end
