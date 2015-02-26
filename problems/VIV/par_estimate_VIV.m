@@ -1,14 +1,15 @@
 % This is an iterative least squares adaptation routine
 
- 
- close all
- clear
+ function cons = par_estimate_VIV(output_focus)
+%  close all
+%  clear
 % Select the adaptation method; 1=time-based, 2=wavelet-based,
 % 3=signature-based
 
-clear
+% clear
 
-yhat = {'1/A*(qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot+(2*pi*St*U/D)^2*q)'};
+% yhat = {'1/A*(qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot+(2*pi*St*U/D)^2*q)'};
+yhat = {'1/A*(qddot/abs(q)^(0.0909) + (4 * pi^2 * q * St^2*U^2*abs(qddot)^(6.6580))/(D^2) - (2*pi*qdot*St*U*eps)/(D*abs(q)^(0.0277)) + (2*pi*q^2*qdot*St*U*eps)/(D*abs(qddot)^(0.0026)))'};
 % yhat = {'-mu1*(x1)^(2)*dx1+mu2*dx1-mu3*x1'};
 
 model_str = regexprep(yhat{1},'\^','\.\^');
@@ -43,7 +44,7 @@ noise_amp=0.0000005;
 Noise_consider=0;
 noise_rem=0;
 
-output_focus=[1:19];
+if nargin<1, output_focus=[1]; end
 output_amnt=length(output_focus);
 outputs=output_amnt;
 out_scl=1;
@@ -57,14 +58,14 @@ end
 
 out = load('VIV_data.mat');
 p.cons = {'A', 'eps'; 
-           out.A,  out.eps};
+          23.0073,  0.0117};
 
 St = out.St;
 D = out.D;
 % A= out.A;
-A = 12;
+A = 23.0073;
 % eps = out.eps;
-eps = 0.3;
+eps = 0.0117;
 y0 = -out.ddy_50s(output_focus,:)'/D;
 qddot = out.ddforce_50s';
 qdot = out.dforce_50s';
@@ -187,7 +188,7 @@ for ii=1:max_iteration
 %         end
 %     end
     
-      e0Plot = 1;
+      e0Plot = 0;
     
     if (e0Plot == 1)
         figure(2);
@@ -346,7 +347,7 @@ end
 
 
 Error_plots=0;
-Estimate_plots=1;
+Estimate_plots=0;
 Par_sigs=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -398,4 +399,4 @@ if Estimate_plots==1
         end
 end
 
-
+cons = p.cons;

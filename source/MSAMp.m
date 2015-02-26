@@ -297,7 +297,7 @@ continueontosecondphase=0;
 for a=1:num_models
     if best_corr_p(a)/best_error_p(a) > best_corr/best_error
 
-%         best_mod=best_mod_p(a);
+      best_mod=best_mod_p(1,a);
 
         best_error = best_error_p(a);
         best_corr = best_corr_p(a);
@@ -487,7 +487,7 @@ if p.plotinloop2
 end
 if p.save==1
     
-    savefile = [p.savepath '_its' num2str(its) '-' num2str(its2)]
+    savefile = [p.savepath '_its' num2str(its) '-' num2str(its2)];
 
     save(savefile); 
 %     best_mod.eqn_sym
@@ -495,7 +495,8 @@ end
 out.nom_mod = p.nom_mod;
 out.nom_error = nom_error;
 out.nom_corr = nom_corr;
-out.best_mod = best_models(1);
+out.best_mod = best_mod;
+out.best_models = best_models;
 out.y_best = y_best;
 out.best_error = best_error;
 out.best_corr = best_corr;

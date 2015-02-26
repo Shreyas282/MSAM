@@ -35,14 +35,14 @@ num_vars = length(p.allvars);
 
 %% load target
 viv = load('problems\VIV\VIV_data.mat');
-for s=1:19
+for s=18:19
     p.savepath = ['D:\MSAM\VIV\VIV_' num2str(s)];
 set = s;
-p.cons = par_estimate_VIV_lin(set);
-A_val = 12;
+tmp_cons = par_estimate_VIV(set);
+% A_val = 12;
 % eps_val = 0.0138;
-% p.cons = {'A', 'eps', 'St', 'D','U'; 
-%            A_val,  eps_val, viv.St, viv.D, viv.U(set)};
+p.cons = {'A', 'eps', 'St', 'D','U'; 
+           tmp_cons{2,1},  tmp_cons{2,2}, viv.St, viv.D, viv.U(set)};
 % p.cons = {'B', 'C', 'E'; 
 % %           -1.1584 , -2.7181, -217.4027};
 %       2.2732    -0.4136    273.9277};
@@ -54,7 +54,7 @@ end
 % p.qddot = viv.ddforce_50s(set,:)';
 % p.qdot = viv.dforce_50s(set,:)';
 % p.q = viv.force_50s(set,:)';
-p.Y = -A_val/viv.D*reshape(viv.ddy_50s(set,:)',size(viv.ddy_50s(set,:)',1)*size(viv.ddy_50s(set,:)',2),1);
+p.Y = -p.cons{1,1}/viv.D*reshape(viv.ddy_50s(set,:)',size(viv.ddy_50s(set,:)',1)*size(viv.ddy_50s(set,:)',2),1);
 p.QDDOT = reshape(viv.ddforce_50s(set,:)',size(viv.ddforce_50s(set,:)',1)*size(viv.ddforce_50s(set,:)',2),1);
 p.QDOT = reshape(viv.dforce_50s(set,:)',size(viv.dforce_50s(set,:)',1)*size(viv.dforce_50s(set,:)',2),1);
 p.Q = reshape(viv.force_50s(set,:)',size(viv.force_50s(set,:)',1)*size(viv.force_50s(set,:)',2),1);
@@ -92,9 +92,9 @@ p.continuept2 = 0; %run more iterations on part 2
 
     
 %% nominal model
-% p.nom_mod.eqn_sym = (qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot...
-%                     + (2*pi*St*U/D)^2*q);
-p.nom_mod.eqn_sym = B*QDDOT + C*QDOT+E*Q;
+p.nom_mod.eqn_sym = (QDDOT + eps*(2*pi*St*U/D)*(Q^2-1)*QDOT...
+                    + (2*pi*St*U/D)^2*Q);
+% p.nom_mod.eqn_sym = B*QDDOT + C*QDOT+E*Q;
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
