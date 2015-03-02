@@ -10,13 +10,7 @@ end
 
 % term options default those that are marked as internal variables
 term_options=find(strcmpi({candidate.terms(:).type},'int'));
-try
-if p.perturb_extvars
-    if p.perturb_extvars
-        term_options = [term_options; find(strcmpi({candidate.terms(:).type},'ext'))];
-    end
-end
-end
+if p.perturb_
 for count=1:length(term_options)
     eval(['syms b' num2str(count)]);
 

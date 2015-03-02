@@ -508,8 +508,8 @@ disp(['correlation improvement: ' num2str((out.best_corr-out.nom_corr)/out.nom_c
 end
 catch ME
     disp(['error: ' ME.message]); 
-    disp(ME.stack(1));
-    disp('execution paused in MSAMp.m.');
+    for i=1:length(ME.stack), disp(ME.stack(i)); end
+    disp('execution paused in MSAMp.m. Press F5 to exit');
     keyboard
 end
 end

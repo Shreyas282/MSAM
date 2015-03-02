@@ -25,13 +25,14 @@ p.save=1;
 % savefile_phi = 'Results\harm_phi_record.mat';
 %% Model Setup
 syms fmaxecc a1 a2 c0 x1 dx1 vmax lceopt act fmax;
-p.intvars = [dx1 x1 act]; % internal variables of the system
+p.intvars = [dx1 x1]; % internal variables of the system
 % p.absintvars = [abs(x1),abs(x2),abs(x3)];
-p.absintvars = [abs(dx1) abs(x1) abs(act)];
+p.absintvars = [abs(dx1) abs(x1)];
 p.mod_adapt.useabs = 1;
-p.extvars = []; % external input variables of the system
+p.extvars = [act]; % external input variables of the system
 p.allvars = [p.intvars p.extvars];
 num_vars = length(p.allvars);
+p.perturb_extvars = true; % allow terms with actuation input to be perturbed
 
 %% load target
 mus = load('Muscle_data.mat');
@@ -98,7 +99,8 @@ p.nom_mod.eqn_sym = (fmax * act *((c0 * (((x1/lceopt)-1)^2))+1)*((fmaxecc/2)*(1+
 
 % p.nom_mod.eqn_sym = B*QDDOT + C*QDOT+E*Q;
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
-p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
+p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int')) ... 
+                + length(regexp([p.nom_mod.terms(:).type],'ext'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
 p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars);
 p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
