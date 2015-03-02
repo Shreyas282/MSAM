@@ -297,7 +297,7 @@ continueontosecondphase=0;
 for a=1:num_models
     if best_corr_p(a)/best_error_p(a) > best_corr/best_error
 
-      best_mod=best_mod_p(1,a);
+      best_mod=best_models_p(1,a);
 
         best_error = best_error_p(a);
         best_corr = best_corr_p(a);
