@@ -1,10 +1,10 @@
 function out = RunModel(model,p)
 
   
-    u=0;
+    u_in=p.simulation.u_in;
     input_set = p.simulation.input_set;% 1:impulse; 2:step; 3:random
     time_span=p.simulation.time_span;
-    samp_time=time_span/(p.simulation.ndata-1);
+    samp_time=p.simulation.samp_time;
     IC = p.simulation.IC;
    if strcmpi(p.simulation.sim_model,'forced_msd_uin')
        simin(:,1) = 0:samp_time:time_span; 
@@ -43,12 +43,12 @@ function out = RunModel(model,p)
         keyboard
     end
 %     if p.simulation.partitioning==1
-        out.t = t_tmp;
-        out.target = y_tmp;
-        out.ddx1 = ddx1;
-        out.dx1 = dx1;
-        out.x1 = y_tmp;
-        out.u_in = reshape(u,[p.simulation.ndata,1]);
+    out.target = y_tmp;
+    if exist('t','var'), out.t = t_tmp; end
+    if exist('ddx1','var'),out.ddx1 = ddx1; end
+    if exist('dx1','var'), out.dx1 = dx1; end
+    if exist('x1','var'), out.x1 = y_tmp; end
+    if exist('u_in','var'), out.u_in = u_in; end
 %         out(4) = time;
 %     else
 %         out = y_tmp;

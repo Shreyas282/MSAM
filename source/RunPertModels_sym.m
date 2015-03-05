@@ -34,10 +34,11 @@ function output = RunPertModels_sym(model_options,beta,p)
     numperts = n-1;  
     input_set = p.simulation.input_set;% 1:impulse; 2:step; 3:random
     time_span=p.simulation.time_span;
-    samp_time=time_span/(p.simulation.ndata-1);
+    samp_time=p.simulation.samp_time;
     ndata=p.simulation.ndata;
     IC = p.simulation.IC;
     noise_on = 0;
+    u_in=p.simulation.u_in;
     
     options=simset('SrcWorkspace','current','DstWorkspace','current');
 
@@ -162,6 +163,7 @@ function output = RunPertModels_sym(model_options,beta,p)
     
     %disp(['number of model options: ' num2str(length(model_options))]);
     for j = 1:length(model_options)
+        
         for bs=1:length(beta)
         model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{['b' num2str(bs)]},eval(['b' num2str(bs)]));
         model_eqns(j) = subs(model_eqns(j),{['b' num2str(bs)]},eval(['b' num2str(bs)]));
@@ -315,6 +317,16 @@ function output = RunPertModels_sym(model_options,beta,p)
 %                           'k*(1-pert)',...
 %                           'k*(1+pert)');
 %                       title(['model ' num2str(j)]);
+            %reset paramter values
+            for cnt=1:length(constantval)
+                try
+                    eval([char(constants(cnt)) ' = ' num2str(constantval(cnt)) ';']);
+                catch
+                    try 
+                        eval([char(constants(cnt)) ' = ' char(constantval(cnt)) ';']);
+                    end
+                end
+            end
             elseif strcmpi(p.mod_adapt.mc_opt,'pertsize') % standard NLS
                 y_all(:,j) = y0(:,j);
                 if j>1

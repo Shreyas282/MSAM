@@ -5,8 +5,8 @@ clear
 
 
  %% number of iterations
-its = 10; % number of iterations for each perturbation case
-its2 = 10; % number of iterations for selected perturbation set
+its = 20; % number of iterations for each perturbation case
+its2 = 20; % number of iterations for selected perturbation set
 
 
 %% saving options
@@ -35,14 +35,15 @@ num_vars = length(p.allvars);
 
 %% load target
 viv = load('problems\VIV\VIV_data.mat');
-for s=18:19
+for s=19
     p.savepath = ['D:\MSAM\VIV\VIV_' num2str(s)];
 set = s;
+
 tmp_cons = par_estimate_VIV(set);
 % A_val = 12;
 % eps_val = 0.0138;
 p.cons = {'A', 'eps', 'St', 'D','U'; 
-           tmp_cons{2,1},  tmp_cons{2,2}, viv.St, viv.D, viv.U(set)};
+           12,  0.3, viv.St, viv.D, viv.U(set)};
 % p.cons = {'B', 'C', 'E'; 
 % %           -1.1584 , -2.7181, -217.4027};
 %       2.2732    -0.4136    273.9277};
@@ -54,10 +55,12 @@ end
 % p.qddot = viv.ddforce_50s(set,:)';
 % p.qdot = viv.dforce_50s(set,:)';
 % p.q = viv.force_50s(set,:)';
-p.Y = -p.cons{1,1}/viv.D*reshape(viv.ddy_50s(set,:)',size(viv.ddy_50s(set,:)',1)*size(viv.ddy_50s(set,:)',2),1);
-p.QDDOT = reshape(viv.ddforce_50s(set,:)',size(viv.ddforce_50s(set,:)',1)*size(viv.ddforce_50s(set,:)',2),1);
-p.QDOT = reshape(viv.dforce_50s(set,:)',size(viv.dforce_50s(set,:)',1)*size(viv.dforce_50s(set,:)',2),1);
-p.Q = reshape(viv.force_50s(set,:)',size(viv.force_50s(set,:)',1)*size(viv.force_50s(set,:)',2),1);
+train = 1:ceil(size(viv.ddy_50s,2)/2);
+
+p.Y = -p.cons{1,1}/viv.D*reshape(viv.ddy_50s(set,train)',size(viv.ddy_50s(set,train)',1)*size(viv.ddy_50s(set,train)',2),1);
+p.QDDOT = reshape(viv.ddforce_50s(set,train)',size(viv.ddforce_50s(set,train)',1)*size(viv.ddforce_50s(set,train)',2),1);
+p.QDOT = reshape(viv.dforce_50s(set,train)',size(viv.dforce_50s(set,train)',1)*size(viv.dforce_50s(set,train)',2),1);
+p.Q = reshape(viv.force_50s(set,train)',size(viv.force_50s(set,train)',1)*size(viv.force_50s(set,train)',2),1);
 
 p.simulation.ndata = length(p.Q);
 
@@ -201,6 +204,29 @@ for opt =0
 end
 end
 % end
+%% tune parameters of final model
+cons_tuned = par_estimate_VIV(19,{char(out.best_mod.eqn_sym)});
+tmp = p.cons;
+p.cons(1:2,1:2) = cons_tuned;
+ybest_tuned = EvalModel(out.best_mod.eqn_sym,p);
+p.cons = tmp;
+%% Plot validation result
+test = (train(end)+1):(size(viv.ddy_50s,2));
+p.Y = -p.cons{1,1}/viv.D*reshape(viv.ddy_50s(set,test)',size(viv.ddy_50s(set,test)',1)*size(viv.ddy_50s(set,test)',2),1);
+p.QDDOT = reshape(viv.ddforce_50s(set,test)',size(viv.ddforce_50s(set,test)',1)*size(viv.ddforce_50s(set,test)',2),1);
+p.QDOT = reshape(viv.dforce_50s(set,test)',size(viv.dforce_50s(set,test)',1)*size(viv.dforce_50s(set,test)',2),1);
+p.Q = reshape(viv.force_50s(set,test)',size(viv.force_50s(set,test)',1)*size(viv.force_50s(set,test)',2),1);
+
+ybest_test = EvalModel(out.best_mod.eqn_sym,p);
+ynom_test = EvalModel(out.nom_mod.eqn_sym,p);
+
+% test parametrically tuned model on validation set
+tmp = p.cons;
+p.cons = cons_tuned;
+ybest_tuned_test = EvalModel(out.best_mod.eqn_sym,p);
+p.cons = tmp;
+
+ybest_tuned_test = EvalModel(out.best_mod.eqn_sym,p);
 %% Plot Best
 % figure;
 % plot(p.Y,'b'); hold on;

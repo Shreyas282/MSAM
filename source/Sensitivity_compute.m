@@ -43,6 +43,7 @@ end
 if p.mod_adapt.algebra
 %     try
         RPout = RunModels_alg_sym(models,beta,p); 
+%         RPout = RunModels_alg_sym_nonlinP(models,beta,p);
 %     catch
 %         keyboard
 %     end
@@ -101,8 +102,9 @@ end
 %         max_corr = (tmp(1,2));
         error = p.Y - y0(:,1);
         sum_abs_error = sum(abs(p.Y-y0(:,1)));
-        max_corr = R2(p.Y,y0(:,1));
-        
+%         max_corr = R2(p.Y,y0(:,1));
+        tmp = corrcoef(p.Y,y0(:,1));
+        max_corr = tmp(1,2);
 outputs.y0 = y0;
 outputs.y_all= y_all;
 outputs.y_ave = y_ave;

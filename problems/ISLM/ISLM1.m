@@ -7,17 +7,17 @@ load('Abhijit.mat')
 
 begin = 1; 
 begin_year=1958+begin;
-finish = 55;
+finish = 30;
 end_year = 1958+finish;
 
 %Model = 'consumer spending'; % choices are 'consumer spending',
 %'investment', 'IS dynamics', 'money demand', 'LM_dynamics'
 Model = 'IS dynamics';
 
-Simulation = 0;
-if strcmpi(Model,'IS dynamics') || strcmpi(Model,'LM dynamics')
-    Simulation = 0;
-end
+Simulation = 1;
+% if strcmpi(Model,'IS dynamics') || strcmpi(Model,'LM dynamics')
+%     Simulation = 1;
+% end
 
 if strcmpi(Model,'consumer spending')
     savefile = ['Results/Consumer_spending_' num2str(begin_year) '_' num2str(end_year) '.mat']; 
@@ -59,13 +59,15 @@ elseif strcmpi(Model,'IS dynamics') && Simulation==1
     %     in1.signals.dimentions = 1;
     %  %   in1(begin:finish,2) = A(begin:finish,10); % Column K: Government Expenditure
     %     in1.signals.values = A(begin:finish,10); % Column K: Government Expenditure
-    u(:,1) = t;
+    u(:,1) = t; 
     u(:,2) = A(begin:finish,10); % Column K: Government Expenditure
     alpha1 = 0.1;
     t1 = t';
     Init(:,1) = t1;
     Init(:,2) = repmat(y(1),size(t1));
-    ydot = 'a1*(u(1)^1.2 - u(2))';
+    ydot = 'a1*(u(1) - u(2))'; % u(1): E, u(2): y
+%     ydot = 'u(1)*a1*abs(u(1))^(15315970234811473/288230376151711744) - (u(2)*a1)/abs(u(1))^(378661661794032277/288230376151711744)';
+%     ydot = 'u(1)*a1*abs(u(1))^(1928812644929541/36028797018963968) - (u(2)*a1)/abs(u(1))^(174759317463501585/144115188075855872)';
     model_str = regexprep(ydot,'\^','\.\^');
     model_str = regexprep(model_str,'\*','\.\*');
     model_str = regexprep(model_str,'\/','\.\/');
@@ -86,7 +88,8 @@ elseif strcmpi(Model,'IS dynamics') && Simulation==0
    %[YO,goodness] = fit(t1,y,'smoothingspline');
    %[YO,goodness] = fit(t1,y,'poly2');
     [ydot,yddot] = differentiate(YO,t1);
-    yhat = 'u(:,1)*abs(ydot(:,1))^.1738 - 1/a1*ydot(:,1)*abs(ydot(:,1))^.2166 + Init(:,2)';
+%     yhat = 'u(:,1) - 1/a1*ydot(:,1)+ Init(:,2)'; % Init(:,2): y0, 
+    yhat = 'Init(:,2) + u(:,1)*abs(ydot(:,1))^(0.1738) - ydot(:,1)/(a1*abs(ydot(:,1))^(0.2166))';
     model_str = regexprep(yhat,'\^','\.\^');
     model_str = regexprep(model_str,'\*','\.\*');
     model_str = regexprep(model_str,'\/','\.\/');

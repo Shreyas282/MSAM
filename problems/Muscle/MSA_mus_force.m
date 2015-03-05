@@ -178,7 +178,7 @@ p.yhat = EvalModel(p.nom_mod.eqn_sym,p);
 %     xlabel('t','fontsize',14);
 % % 
    
-parallel = 0;
+parallel = 1;
     
 for opt =0
     for devcnt = 0

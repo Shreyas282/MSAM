@@ -421,7 +421,7 @@ for x = itsstart:its2
 end
 
 end
-if p.plotinloop2
+if continueontosecondphase && p.plotinloop2
         figure;
         plot(p.yhat,'--g'); hold on;
         plot(y_best,'r'); 
@@ -429,11 +429,11 @@ if p.plotinloop2
         title(['Best final model' best_perttitle]);
         l=legend('$\hat{y}_0$','$\hat{y}_{end}$','$y^*$');
         set(l,'interpreter','latex','Fontsize',12);
-    end
+end
 if p.save==1
     
-    savefile = [p.savepath p.simulation.sim_model '_PARSIM_randcount' num2str(randcount) '_mu' ...
-        num2str(p.mod_adapt.mustart(1)*100) '_dev' num2str(deviation*100) '_its' num2str(its) '-' num2str(its2)]
+    savefile = [p.savepath p.simulation.sim_model '_mu' ...
+        num2str(p.mod_adapt.mustart(1)*100) '_its' num2str(its) '-' num2str(its2)]
 
     save(savefile); 
     best_mod.eqn_sym

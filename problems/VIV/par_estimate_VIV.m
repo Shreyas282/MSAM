@@ -1,15 +1,16 @@
 % This is an iterative least squares adaptation routine
 
- function cons = par_estimate_VIV(output_focus)
+ function cons = par_estimate_VIV(output_focus,yhat)
 %  close all
 %  clear
 % Select the adaptation method; 1=time-based, 2=wavelet-based,
 % 3=signature-based
 
 % clear
-
-% yhat = {'1/A*(qddot + eps*(2*pi*St*U/D)*(q^2-1)*qdot+(2*pi*St*U/D)^2*q)'};
-yhat = {'1/A*(qddot/abs(q)^(0.0909) + (4 * pi^2 * q * St^2*U^2*abs(qddot)^(6.6580))/(D^2) - (2*pi*qdot*St*U*eps)/(D*abs(q)^(0.0277)) + (2*pi*q^2*qdot*St*U*eps)/(D*abs(qddot)^(0.0026)))'};
+if nargin<2
+    yhat = {'1/A*(QDDOT + eps*(2*pi*St*U/D)*(Q^2-1)*QDOT+(2*pi*St*U/D)^2*Q)'};
+end
+% yhat = {'1/A*(QDDOT/abs(Q)^(0.0909) + (4 * pi^2 * Q * St^2*U^2*abs(QDDOT)^(6.6580))/(D^2) - (2*pi*QDOT*St*U*eps)/(D*abs(Q)^(0.0277)) + (2*pi*Q^2*QDOT*St*U*eps)/(D*abs(QDDOT)^(0.0026)))'};
 % yhat = {'-mu1*(x1)^(2)*dx1+mu2*dx1-mu3*x1'};
 
 model_str = regexprep(yhat{1},'\^','\.\^');
@@ -58,19 +59,19 @@ end
 
 out = load('VIV_data.mat');
 p.cons = {'A', 'eps'; 
-          23.0073,  0.0117};
+          12,  0.3};
 
 St = out.St;
 D = out.D;
 % A= out.A;
-A = 23.0073;
+A = 12;
 % eps = out.eps;
-eps = 0.0117;
+eps = 0.3;
 y0 = -out.ddy_50s(output_focus,:)'/D;
-qddot = out.ddforce_50s';
-qdot = out.dforce_50s';
-q = out.force_50s';
-U = repmat(out.U',size(q,1),1);
+QDDOT = out.ddforce_50s';
+QDOT = out.dforce_50s';
+Q = out.force_50s';
+U = repmat(out.U',size(Q,1),1);
 %% parameters to adapt
 par_num = [1:2];
 par_start=[p.cons{2,1},p.cons{2,2}];

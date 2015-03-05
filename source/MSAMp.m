@@ -20,9 +20,10 @@ if ~p.continuept2
     pert_index = allcomb(a{:});
     pert_index = shuffle(pert_index,1);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
-%     tmp = corrcoef(p.Y,p.yhat(:,1));
-%     nom_corr = tmp(1,2);
-    nom_corr = R2(p.Y,p.yhat(:,1));
+    tmp = corrcoef(p.Y,p.yhat(:,1));
+    nom_corr = tmp(1,2);
+%     nom_corr = R2(p.Y,p.yhat(:,1));
+    
     sum_abs_error=zeros(num_models,its); 
     max_corr=zeros(num_models,its); 
     best_corr_p  = nom_corr*ones(1,num_models);
@@ -141,6 +142,7 @@ parfor a = 1:num_models
 %         mu_a = reshape(mu(a,:,:),size(mu,2),size(mu,3));
 %         best_corr_tmp = nom_corr;
 %         best_erro_tmp = nom_error;
+        dMC_a = zeros(p.num_terms,its);
         model_disp = 0;
         for x = 2:its
             
@@ -172,7 +174,7 @@ parfor a = 1:num_models
                y0 = outputs_a(x).y0;
 %                y_all=outputs_a(x).y_all;
                y_ave=outputs_a(x).y_ave;
-                dMC_a = outputs_a(x).dMC;
+                dMC_a(:,x) = outputs_a(x).dMC;
 
                 %% valley jumping control 
                 if p.mod_adapt.valleycontrol==1
