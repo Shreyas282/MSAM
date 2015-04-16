@@ -1,6 +1,6 @@
 % This is an umbrella program for IS-LM model components
-clear all
-clear
+% clear all
+% clear
 
 Save=0;
 load('Abhijit.mat')
@@ -16,7 +16,7 @@ Model = 'IS dynamics';
 
 Simulation = 1;
 % if strcmpi(Model,'IS dynamics') || strcmpi(Model,'LM dynamics')
-%     Simulation = 1;
+%     Simulation = 0;
 % end
 
 if strcmpi(Model,'consumer spending')
@@ -60,14 +60,22 @@ elseif strcmpi(Model,'IS dynamics') && Simulation==1
     %  %   in1(begin:finish,2) = A(begin:finish,10); % Column K: Government Expenditure
     %     in1.signals.values = A(begin:finish,10); % Column K: Government Expenditure
     u(:,1) = t; 
-    u(:,2) = A(begin:finish,10); % Column K: Government Expenditure
+%     u(:,2) = A(begin:finish,10); % Column K: Government Expenditure
+    u(:,2) = A(begin:finish,7)+A(begin:finish,10)+ A(begin:finish,12) + A(begin:finish,17);
     alpha1 = 0.1;
     t1 = t';
     Init(:,1) = t1;
     Init(:,2) = repmat(y(1),size(t1));
-    ydot = 'a1*(u(1) - u(2))'; % u(1): E, u(2): y
+%     ydot = 'a1*(u(1) - u(2))'; % u(1): E, u(2): y
+    ydot = '(u(1)*a1)/abs(u(1))^(2673460203202591643/9223372036854775808) - (u(2)*a1)/abs(u(2))^(130412768219369955029/295147905179352825856)';
+%     ydot = '(u(1)*a1*abs(u(2))^(193249369989319951/18446744073709551616))/abs(u(2))^((6568*pi)/67445) - (u(2)*a1)/abs(u(1))^(16860430611952989403/36893488147419103232)';
+%     ydot = '(u(1)*a1)/abs(u(2))^(39287450250283015/144115188075855872) - (u(2)*a1)/abs(u(2))^(50945000315602335/144115188075855872)';
+%     ydot = '(u(1)*a1)/abs(u(1))^(5382195960322087755/18446744073709551616) - (u(2)*a1)/abs(u(1))^(33011472228174705455/73786976294838206464)';
+%     ydot = '(u(1)*a1)/abs(u(1))^(6701864690602794627/36893488147419103232) - (u(2)*a1)/abs(u(2))^(3263578753017036541/4611686018427387904)';
+%     ydot = '(u(1)*a1)/abs(u(1))^(7634305347139930665/36893488147419103232) - (u(2)*a1)/abs(u(2))^(1857191265087852893/2305843009213693952)';
 %     ydot = 'u(1)*a1*abs(u(1))^(15315970234811473/288230376151711744) - (u(2)*a1)/abs(u(1))^(378661661794032277/288230376151711744)';
 %     ydot = 'u(1)*a1*abs(u(1))^(1928812644929541/36028797018963968) - (u(2)*a1)/abs(u(1))^(174759317463501585/144115188075855872)';
+%     ydot = '(u(1)*a1) - (u(2)*a1)'
     model_str = regexprep(ydot,'\^','\.\^');
     model_str = regexprep(model_str,'\*','\.\*');
     model_str = regexprep(model_str,'\/','\.\/');
@@ -76,20 +84,27 @@ elseif strcmpi(Model,'IS dynamics') && Simulation==0
     savefile = ['Results/IS_dynamics_alg_' num2str(begin_year) '_' num2str(end_year) '.mat']; 
     % ydot = alpha(e-y); where e: is the government expenditure and y is
     % the GDP
-    u(:,1) = A(begin:finish,10); % Column K: Government Expenditure
-    y = A(begin:finish,6); % Column G: GDP
-    tmax = (length(y));
+	u(:,1) = A(begin:finish,7)+A(begin:finish,10)+ A(begin:finish,12) + A(begin:finish,17); % sum of Columns H: Personal Consumption;
+    %u(:,1) = A(begin:finish,10); % Column K: Government Expenditure
+    x = A(begin:finish,6); % Column G: GDP
+    tmax = (length(x));
     dt = 1; % 1 year between data points
     t = 1:dt:tmax;
     t1 = t';
     Init(:,1) = t1;
-    Init(:,2) = repmat(y(1),size(t1));
-    [YO,goodness] = fit(t1,y,'cubicinterp');
+    Init(:,2) = repmat(x(1),size(t1));
+    [YO,goodness] = fit(t1,x,'cubicinterp');
    %[YO,goodness] = fit(t1,y,'smoothingspline');
    %[YO,goodness] = fit(t1,y,'poly2');
-    [ydot,yddot] = differentiate(YO,t1);
+%     [ydot,yddot] = differentiate(YO,t1);
+    [ys,ydot] = lowessDifferentiation([1:length(x)]',x);
+    x = ys;
+    y = ydot;
+%     yhat = 'a1*(u(:,1) - x)';
+
+    yhat = '(u(:,1)*a1)/abs(u(:,1))^(2673460203202591643/9223372036854775808) - (x*a1)/abs(x)^(130412768219369955029/295147905179352825856)';
 %     yhat = 'u(:,1) - 1/a1*ydot(:,1)+ Init(:,2)'; % Init(:,2): y0, 
-    yhat = 'Init(:,2) + u(:,1)*abs(ydot(:,1))^(0.1738) - ydot(:,1)/(a1*abs(ydot(:,1))^(0.2166))';
+%     yhat = 'Init(:,2) + u(:,1)*abs(ydot(:,1))^(0.1738) - ydot(:,1)/(a1*abs(ydot(:,1))^(0.2166))';
     model_str = regexprep(yhat,'\^','\.\^');
     model_str = regexprep(model_str,'\*','\.\*');
     model_str = regexprep(model_str,'\/','\.\/');
@@ -161,7 +176,7 @@ end
 
 mu=0.1;
 %mu=1;
-max_iteration=20;
+max_iteration=50;
 output_focus=[1];
 %cascade=1;
 make_movie=0;
@@ -175,10 +190,13 @@ elseif  strcmpi(Model,'investment')
     par_start = [1 1 1 1];
     par_num = 1:4;
 elseif strcmpi(Model,'IS dynamics') && Simulation==1
-    par_start = [0.2];
+%     par_start = [0.2];
+    par_start = [1.1193];
+%     par_start = [1.1470];
     par_num = [1];
 elseif strcmpi(Model,'IS dynamics') && Simulation==0
-    par_start = [0.1];
+%     par_start = [0.2];
+    par_start = [1.1193];
     par_num = [1];
 elseif  strcmpi(Model,'money demand')
     par_start = [1 1 1 1];

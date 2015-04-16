@@ -432,8 +432,7 @@ if continueontosecondphase && p.plotinloop2
 end
 if p.save==1
     
-    savefile = [p.savepath p.simulation.sim_model '_mu' ...
-        num2str(p.mod_adapt.mustart(1)*100) '_its' num2str(its) '-' num2str(its2)]
+    savefile = [p.savepath '_mu' num2str(p.mod_adapt.mustart(1)*100) '_its' num2str(its) '-' num2str(its2)]
 
     save(savefile); 
     best_mod.eqn_sym

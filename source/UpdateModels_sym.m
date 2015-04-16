@@ -5,7 +5,13 @@ can_mod=models(1);
 pert_mods = models(2:end);
 
 opts=find(strcmpi({can_mod.terms(:).type},'int'));
-
+try
+    if p.perturb_extvars
+        if p.perturb_extvars
+            opts = [opts; find(strcmpi({can_mod.terms(:).type},'ext'))];
+        end
+    end
+end
 for j = 1:length(pert_mods)
     can_mod.terms(opts(j)).val = pert_mods(j).terms(opts(j)).val*...
                                  pert_mods(j).terms(opts(j)).pert;

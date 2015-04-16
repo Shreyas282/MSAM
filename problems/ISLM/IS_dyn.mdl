@@ -1,12 +1,12 @@
 Model {
   Name			  "IS_dyn"
-  Version		  7.9
+  Version		  7.8
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.4"
+    ComputedModelVersion    "1.8"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -36,11 +36,11 @@ Model {
   Creator		  "danai"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "danai"
+  LastModifiedBy	  "TheQuarry"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Feb 26 14:41:42 2015"
-  RTWModifiedTimeStamp	  346862217
-  ModelVersionFormat	  "1.%<AutoIncrement:4>"
+  LastModifiedDate	  "Tue Mar 10 14:07:41 2015"
+  RTWModifiedTimeStamp	  347897259
+  ModelVersionFormat	  "1.%<AutoIncrement:8>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,6 +78,7 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "IS_dyn"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -135,13 +136,13 @@ Model {
     Dimension		    1
     Simulink.ConfigSet {
       $ObjectID		      3
-      Version		      "1.12.0"
+      Version		      "1.11.1"
       Array {
 	Type			"Handle"
 	Dimension		9
 	Simulink.SolverCC {
 	  $ObjectID		  4
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  StartTime		  "0.0"
 	  StopTime		  "tmax-1"
 	  AbsTol		  "auto"
@@ -159,7 +160,6 @@ Model {
 	  MaxConsecutiveMinStep	  "dt"
 	  RelTol		  "1e-3"
 	  SolverMode		  "Auto"
-	  EnableConcurrentExecution off
 	  ConcurrentTasks	  off
 	  Solver		  "ode4"
 	  SolverName		  "ode4"
@@ -176,7 +176,7 @@ Model {
 	}
 	Simulink.DataIOCC {
 	  $ObjectID		  5
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
 	  FinalStateName	  "xFinal"
@@ -208,7 +208,7 @@ Model {
 	}
 	Simulink.OptimizationCC {
 	  $ObjectID		  6
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    8
@@ -260,11 +260,11 @@ Model {
 	  BufferReusableBoundary  on
 	  SimCompilerOptimization "Off"
 	  AccelVerboseBuild	  off
-	  ParallelExecutionInRapidAccelerator on
+	  AccelParallelForEachSubsystem	on
 	}
 	Simulink.DebuggingCC {
 	  $ObjectID		  7
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
 	  ArrayBoundsChecking	  "none"
@@ -352,7 +352,7 @@ Model {
 	}
 	Simulink.HardwareCC {
 	  $ObjectID		  8
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
 	  ProdBitPerInt		  32
@@ -389,7 +389,7 @@ Model {
 	}
 	Simulink.ModelReferenceCC {
 	  $ObjectID		  9
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
 	  EnableParallelModelReferenceBuilds off
@@ -404,7 +404,7 @@ Model {
 	}
 	Simulink.SFSimCC {
 	  $ObjectID		  10
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
 	  SFSimEcho		  on
@@ -419,7 +419,7 @@ Model {
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
 	  $ObjectID		  11
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    9
@@ -463,9 +463,8 @@ Model {
 	  GenerateTraceReportSf	  off
 	  GenerateTraceReportEml  off
 	  GenerateCodeInfo	  off
-	  GenerateWebview	  off
+	  GenerateSLWebview	  off
 	  GenerateCodeMetricsReport off
-	  GenerateCodeReplacementReport	off
 	  RTWCompilerOptimization "Off"
 	  CheckMdlBeforeBuild	  "Off"
 	  CustomRebuildMode	  "OnUpdate"
@@ -474,7 +473,7 @@ Model {
 	    Dimension		    2
 	    Simulink.CodeAppCC {
 	      $ObjectID		      12
-	      Version		      "1.12.0"
+	      Version		      "1.11.1"
 	      Array {
 		Type			"Cell"
 		Dimension		21
@@ -539,7 +538,7 @@ Model {
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
 	      $ObjectID		      13
-	      Version		      "1.12.0"
+	      Version		      "1.11.1"
 	      Array {
 		Type			"Cell"
 		Dimension		16
@@ -564,7 +563,7 @@ Model {
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
 	      TargetLibSuffix	      ""
 	      TargetPreCompLibLocation ""
-	      CodeReplacementLibrary  "ANSI_C"
+	      TargetFunctionLibrary   "ANSI_C"
 	      UtilityFuncGeneration   "Auto"
 	      ERTMultiwordTypeDef     "System defined"
 	      CodeExecutionProfiling  off
@@ -602,7 +601,6 @@ Model {
 	      ModelStepFunctionPrototypeControlCompliant off
 	      CPPClassGenCompliant    off
 	      AutosarCompliant	      off
-	      GRTInterface	      off
 	      UseMalloc		      off
 	      ExtMode		      off
 	      ExtModeStaticAlloc      off
@@ -622,7 +620,7 @@ Model {
 	}
 	hdlcoderui.hdlcc {
 	  $ObjectID		  14
-	  Version		  "1.12.0"
+	  Version		  "1.11.1"
 	  Description		  "HDL Coder custom configuration component"
 	  Name			  "HDL Coder"
 	  Array {
@@ -645,7 +643,6 @@ Model {
     $PropName		    "ActiveConfigurationSet"
     $ObjectID		    3
   }
-  ExplicitPartitioning	  off
   BlockDefaults {
     ForegroundColor	    "black"
     BackgroundColor	    "white"
@@ -688,7 +685,6 @@ Model {
     Block {
       BlockType		      FromWorkspace
       VariableName	      "simulink_input"
-      OutDataTypeStr	      "Inherit: auto"
       SampleTime	      "-1"
       Interpolate	      on
       ZeroCross		      off
@@ -718,6 +714,23 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Scope
+      ModelBased	      off
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "on"
+      Grid		      "on"
+      TimeRange		      "auto"
+      YMin		      "-5"
+      YMax		      "5"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      LimitDataPoints	      on
+      MaxDataPoints	      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Sum
       IconShape		      "rectangular"
       Inputs		      "++"
@@ -739,14 +752,13 @@ Model {
       MaxDataPoints	      "1000"
       Decimation	      "1"
       SampleTime	      "0"
-      SaveFormat	      "Array"
       FixptAsFi		      off
       NumInputs		      "1"
     }
   }
   System {
     Name		    "IS_dyn"
-    Location		    [751, 229, 1549, 631]
+    Location		    [809, 328, 1607, 730]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -760,7 +772,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "9"
+    SIDHighWatermark	    "12"
     Block {
       BlockType		      BusCreator
       Name		      "Bus\nCreator"
@@ -778,7 +790,6 @@ Model {
       Position		      [30, 58, 95, 82]
       ZOrder		      1
       VariableName	      "u"
-      OutDataTypeStr	      "double"
       SampleTime	      "dt"
       ZeroCross		      on
     }
@@ -787,11 +798,25 @@ Model {
       Name		      "GDP"
       SID		      "8"
       Ports		      [1]
-      Position		      [635, 65, 665, 95]
+      Position		      [630, 75, 660, 105]
       ZOrder		      5
       VariableName	      "y_tmp"
       MaxDataPoints	      "inf"
       SampleTime	      "-1"
+      SaveFormat	      "Array"
+      FixptAsFi		      on
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "GDP_dot"
+      SID		      "10"
+      Ports		      [1]
+      Position		      [325, 20, 355, 50]
+      ZOrder		      5
+      VariableName	      "dy"
+      MaxDataPoints	      "inf"
+      SampleTime	      "-1"
+      SaveFormat	      "Array"
       FixptAsFi		      on
     }
     Block {
@@ -801,7 +826,6 @@ Model {
       Position		      [455, 213, 520, 237]
       ZOrder		      1
       VariableName	      "Init"
-      OutDataTypeStr	      "double"
       SampleTime	      "dt"
       ZeroCross		      on
     }
@@ -812,6 +836,7 @@ Model {
       Ports		      [1, 1]
       Position		      [360, 65, 390, 95]
       ZOrder		      4
+      InitialCondition	      "Init(2)"
     }
     Block {
       BlockType		      MATLABFcn
@@ -820,6 +845,43 @@ Model {
       Ports		      [1, 1]
       Position		      [240, 65, 300, 95]
       MATLABFcn		      "eval(model_str)"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope"
+      SID		      "11"
+      Ports		      [1]
+      Position		      [465, 19, 495, 51]
+      ZOrder		      -16
+      Floating		      off
+      Location		      [188, 390, 512, 629]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope1"
+      SID		      "12"
+      Ports		      [1]
+      Position		      [230, 19, 260, 51]
+      ZOrder		      -16
+      Floating		      off
+      Location		      [188, 390, 512, 629]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      SaveName		      "ScopeData1"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
     }
     Block {
       BlockType		      Sum
@@ -850,26 +912,49 @@ Model {
     Line {
       SrcBlock		      "MATLAB Fcn"
       SrcPort		      1
-      DstBlock		      "Integrator"
-      DstPort		      1
+      Points		      [10, 0]
+      Branch {
+	DstBlock		"Integrator"
+	DstPort			1
+      }
+      Branch {
+	Points			[-5, 0; 0, -30]
+	Branch {
+	  DstBlock		  "GDP_dot"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [-95, 0]
+	  DstBlock		  "Scope1"
+	  DstPort		  1
+	}
+      }
     }
     Line {
       SrcBlock		      "Integrator"
       SrcPort		      1
-      Points		      [50, 0]
+      Points		      [20, 0]
       Branch {
-	DstBlock		"Sum"
-	DstPort			1
+	Points			[30, 0]
+	Branch {
+	  DstBlock		  "Sum"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [5, 0; 0, 90; -330, 0; 0, -80]
+	  Branch {
+	    Points		    [-5, 0]
+	  }
+	  Branch {
+	    DstBlock		    "Bus\nCreator"
+	    DstPort		    2
+	  }
+	}
       }
       Branch {
-	Points			[5, 0; 0, 90; -330, 0; 0, -80]
-	Branch {
-	  Points		  [-5, 0]
-	}
-	Branch {
-	  DstBlock		  "Bus\nCreator"
-	  DstPort		  2
-	}
+	Points			[0, -45]
+	DstBlock		"Scope"
+	DstPort			1
       }
     }
     Line {
@@ -882,6 +967,7 @@ Model {
     Line {
       SrcBlock		      "Sum"
       SrcPort		      1
+      Points		      [70, 0]
       DstBlock		      "GDP"
       DstPort		      1
     }

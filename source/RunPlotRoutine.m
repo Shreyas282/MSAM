@@ -99,7 +99,7 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
     xlim([0 its+1]);
     l=legend(leg);
     set(l,'interpreter','latex','fontsize',16);
-    ylim([0 max([max(rho)])*2 ]);
+%     ylim([0 max([max(rho)])*2 ]);
     
     pause(.5);
 end
