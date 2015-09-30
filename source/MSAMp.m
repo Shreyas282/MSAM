@@ -175,7 +175,36 @@ parfor a = 1:num_models
 %                y_all=outputs_a(x).y_all;
                y_ave=outputs_a(x).y_ave;
                 dMC_a(:,x) = outputs_a(x).dMC;
+%% --- Update best model
+                if p.mod_adapt.bestpass
+                    %update best model
+                    %     if sum_abs_error(a,end)<best_error
+                    if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
 
+%                         best_mod_p(a)=models(a,1);
+%                         if ~model_disp
+%                             disp(['best model updated: y = ' char(models(1).eqn_form)]); 
+%                             model_disp=true; 
+%                         end
+                        best_error_p(a)=sum_abs_error_a(x);
+                        best_corr_p(a) = max_corr_a(x);
+                        y_best_p(:,a) = outputs_a(x).y0(:,1);
+                        best_rho_p(:,a) = rho_a(:,x-1);
+%                         best_rho_hist = rho_a;
+                        best_models_p(:,a) = models;
+                        best_pertnum_p(a,:) =pert_index(a,:);
+                        best_mu_p(:,a) = mu_a(:,x-1);
+                        best_beta_p(:,a) = beta_a(:,x);
+%                         endits = x;
+%                         if p.plotinloop==1
+%                             best_perttitle_p(a) = perttitle;
+%                         else
+%                             best_perttitle_p(a)='';
+%                         end
+%                         continueontosecondphase(a)=1;
+                    end
+
+                end
                 %% valley jumping control 
                 if p.mod_adapt.valleycontrol==1
                     mu_a(:,x) = AvoidValleyJump(x,gamma_a(:,:),mu_a(:,x));
@@ -236,36 +265,7 @@ parfor a = 1:num_models
                     max_corr_a(x:its)=0;
                 break;
                 end
-                %% --- Update best model
-                if p.mod_adapt.bestpass
-                    %update best model
-                    %     if sum_abs_error(a,end)<best_error
-                    if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
-
-%                         best_mod_p(a)=models(a,1);
-%                         if ~model_disp
-%                             disp(['best model updated: y = ' char(models(1).eqn_form)]); 
-%                             model_disp=true; 
-%                         end
-                        best_error_p(a)=sum_abs_error_a(x);
-                        best_corr_p(a) = max_corr_a(x);
-                        y_best_p(:,a) = outputs_a(x).y0(:,1);
-                        best_rho_p(:,a) = rho_a(:,x);
-%                         best_rho_hist = rho_a;
-                        best_models_p(:,a) = models;
-                        best_pertnum_p(a,:) =pert_index(a,:);
-                        best_mu_p(:,a) = mu_a(:,x);
-                        best_beta_p(:,a) = beta_a(:,x);
-%                         endits = x;
-%                         if p.plotinloop==1
-%                             best_perttitle_p(a) = perttitle;
-%                         else
-%                             best_perttitle_p(a)='';
-%                         end
-%                         continueontosecondphase(a)=1;
-                    end
-
-                end
+                
             else
                 p_t_a(:,x:its) = zeros(size(p_t_a,1),its-x+1);
                 phi_a(:,:,x:its) = zeros(size(phi_a,1),size(phi_a,2),its-x+1);
@@ -373,6 +373,9 @@ for x = itsstart:its2
     
    % p.mod_adapt.algebra = 0;
     %% --- model adaptation routine
+    if x == its2
+        keyboard
+    end
     try
         
         [p_t2(:,x),phi2(:,:,x),error2(:,x),sum_abs_error2(x),max_corr2(x),outputs,pass3] = Sensitivity_compute(best_models,beta2(:,x-1),gamma2(:,x-1),rho2(:,x-1),p_t2(:,x-1),p);
@@ -400,6 +403,26 @@ for x = itsstart:its2
         y_ave2(:,:,x)=outputs.y_ave;
         dMC2(:,x) = outputs.dMC;
         
+        %% --- Update best model
+        if max_corr2(x)/sum_abs_error2(x) > best_corr/best_error
+    %       if max_corr(end) > best_corr
+            best_mod = best_models(1);
+
+            best_error=sum_abs_error2(x);
+            best_corr = max_corr2(x);
+            y_best = y02(:,1,x);
+%                 y_best = y_ave2(:,1,end);
+            best_rho = rho2(:,x-1);
+
+        end
+
+        if max_corr2(x)>win_criteria
+    %         best_gamma = gamhist2(:,x);
+            disp(['Correlation criteria achieved (max_corr2 = ' num2str(max_corr2(x)) ')']);
+            its_FTW = x;
+            break;
+        end
+            
         % valley jumping control - only works with adaptable mu
         if p.mod_adapt.valleycontrol==1
             mu2(:,x) = AvoidValleyJump(x,gamma2,mu2(:,x-1));
@@ -453,25 +476,7 @@ for x = itsstart:its2
                 pertnum2,p_t2(:,x),phiplot,rho2,error2);
         end
         
-%% --- Update best model
-            if max_corr2(x)/sum_abs_error2(x) > best_corr/best_error
-        %       if max_corr(end) > best_corr
-                best_mod = best_models(1);
-        
-                best_error=sum_abs_error2(x);
-                best_corr = max_corr2(x);
-                y_best = y02(:,1,x);
-%                 y_best = y_ave2(:,1,end);
-                best_rho = rho2(:,x);
-        
-            end
 
-			if max_corr2(x)>win_criteria
-        %         best_gamma = gamhist2(:,x);
-                disp(['Correlation criteria achieved (max_corr2 = ' num2str(max_corr2(x)) ')']);
-                its_FTW = x;
-                break;
-            end
     end
 end
 

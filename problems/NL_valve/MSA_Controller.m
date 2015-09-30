@@ -249,8 +249,8 @@ Sys = 'NL_valve_2';
 
 % p.folderName = ['data/' char(Sys)];    
 
-p.savepath = ['data/' char(Sys)] ;
-    
+% p.savepath = ['data/' char(Sys)] ;
+p.savepath = 'problems/NL_valve';    
 for k=1:length(p.cons(1,:))
     eval(['syms ' p.cons{1,k}])
 end
@@ -274,6 +274,7 @@ end
     
 %% nominal model
     p.nom_mod.eqn_sym = Tk*P + Ti*I + Td*D;
+%     p.nom_mod.eqn_sym = P^(46768146931604409/36028797018963968)*Tk + I^(5988816154854279/9007199254740992)*Ti + D^(3020328701386761/4503599627370496)*Td;
     p.nom_mod.eqn_form = p.nom_mod.eqn_sym;
     p.nom_mod = getTerms(p.nom_mod,'mod',p);
     p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));

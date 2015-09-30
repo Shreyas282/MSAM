@@ -38,8 +38,9 @@ function output = RunPertModels_sym(model_options,beta,p)
     ndata=p.simulation.ndata;
     IC = p.simulation.IC;
     noise_on = 0;
-    u_in=p.simulation.u_in;
-    
+%     if exist(p.simulation.u_in)
+%         u_in=p.simulation.u_in;
+%     end
     options=simset('SrcWorkspace','current','DstWorkspace','current');
 
     
