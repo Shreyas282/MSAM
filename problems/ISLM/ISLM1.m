@@ -14,7 +14,7 @@ end_year = 1958+finish;
 %'investment', 'IS dynamics', 'money demand', 'LM_dynamics'
 Model = 'IS dynamics';
 
-Simulation = 1;
+Simulation = 0;
 % if strcmpi(Model,'IS dynamics') || strcmpi(Model,'LM dynamics')
 %     Simulation = 0;
 % end
@@ -66,8 +66,8 @@ elseif strcmpi(Model,'IS dynamics') && Simulation==1
     t1 = t';
     Init(:,1) = t1;
     Init(:,2) = repmat(y(1),size(t1));
-%     ydot = 'a1*(u(1) - u(2))'; % u(1): E, u(2): y
-    ydot = '(u(1)*a1)/abs(u(1))^(2673460203202591643/9223372036854775808) - (u(2)*a1)/abs(u(2))^(130412768219369955029/295147905179352825856)';
+    ydot = 'a1*(u(1) - u(2))'; % u(1): E, u(2): y
+%     ydot = '(u(1)*a1)/abs(u(1))^(2673460203202591643/9223372036854775808) - (u(2)*a1)/abs(u(2))^(130412768219369955029/295147905179352825856)';
 %     ydot = '(u(1)*a1*abs(u(2))^(193249369989319951/18446744073709551616))/abs(u(2))^((6568*pi)/67445) - (u(2)*a1)/abs(u(1))^(16860430611952989403/36893488147419103232)';
 %     ydot = '(u(1)*a1)/abs(u(2))^(39287450250283015/144115188075855872) - (u(2)*a1)/abs(u(2))^(50945000315602335/144115188075855872)';
 %     ydot = '(u(1)*a1)/abs(u(1))^(5382195960322087755/18446744073709551616) - (u(2)*a1)/abs(u(1))^(33011472228174705455/73786976294838206464)';
@@ -190,13 +190,13 @@ elseif  strcmpi(Model,'investment')
     par_start = [1 1 1 1];
     par_num = 1:4;
 elseif strcmpi(Model,'IS dynamics') && Simulation==1
-%     par_start = [0.2];
-    par_start = [1.1193];
+    par_start = [0.2];
+%     par_start = [1.1193];
 %     par_start = [1.1470];
     par_num = [1];
 elseif strcmpi(Model,'IS dynamics') && Simulation==0
-%     par_start = [0.2];
-    par_start = [1.1193];
+    par_start = [0.2];
+%     par_start = [1.1193];
     par_num = [1];
 elseif  strcmpi(Model,'money demand')
     par_start = [1 1 1 1];

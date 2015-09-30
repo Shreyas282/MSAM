@@ -89,7 +89,12 @@ function output = RunPertModels_sym(model_options,beta,p)
          
             model_eqns = [models.eqn_sym];
             removals=constants==0;
-            constants(removals)=[];
+			try
+				constants(removals)=[];
+			catch
+				disp('save the workspace and sent it to me!');
+				keyboard
+			end
             constantval(removals)=[];
             lumpedparams=double(constantval);
             for cnt=1:length(constantval)
@@ -162,8 +167,7 @@ function output = RunPertModels_sym(model_options,beta,p)
     y_all(ndata,length(model_options),size(dTheta,1)) = 0;
     
     %disp(['number of model options: ' num2str(length(model_options))]);
-    for j = 1:length(model_options)
-        
+    for j = 1:length(model_options)	
         for bs=1:length(beta)
         model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{['b' num2str(bs)]},eval(['b' num2str(bs)]));
         model_eqns(j) = subs(model_eqns(j),{['b' num2str(bs)]},eval(['b' num2str(bs)]));

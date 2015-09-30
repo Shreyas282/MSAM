@@ -419,7 +419,7 @@ for x = itsstart:its2
             end
     end
 end
-
+%% save output
 end
 if continueontosecondphase && p.plotinloop2
         figure;

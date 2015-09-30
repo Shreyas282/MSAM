@@ -5,8 +5,8 @@ clear
 
 
  %% number of iterations
-its = 20; % number of iterations for each perturbation case
-its2 = 20; % number of iterations for selected perturbation set
+its = 3; % number of iterations for each perturbation case
+its2 = 10; % number of iterations for selected perturbation set
 
 
 %% saving options
