@@ -4,7 +4,7 @@ function out = MSAM(p,its,its2)
 
 out=[];
 disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
-disp(' Running MSAM version 1.0.0-wgl');
+disp(' Running MSAM version 1.0.1-wgl');
 disp('///////////////////////////////');
 
 disp(['Number of round robin iterations: ' num2str(its)]);
