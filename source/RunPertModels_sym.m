@@ -89,11 +89,12 @@ function output = RunPertModels_sym(model_options,beta,p)
          end
          
             model_eqns = [models.eqn_sym];
-            removals=constants==0;
+            removals=logical(constants==0);
 			try
 				constants(removals)=[];
-			catch
-				disp('save the workspace and sent it to me!');
+            catch ME
+                disp(ME.message);
+				disp('save the workspace and send it to me!');
 				keyboard
 			end
             constantval(removals)=[];
@@ -246,6 +247,7 @@ function output = RunPertModels_sym(model_options,beta,p)
                 % sum their squares
                 
                       counter=1;
+                dydtheta(ndata,length(model_options),size(dTheta,1))=0;
                 for q = 1:length(dTheta(:,1))
                     for count=1:length(dTheta(1,:))
                         eval([char(constants(count)) ' = dTheta(q,count);']);
