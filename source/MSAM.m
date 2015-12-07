@@ -53,7 +53,6 @@ if ~p.continuept2
  continueontosecondphase=0;
 for a = 1:num_models
     %reset variables for each hill climb
-    disp(['Running model adaptation ' num2str(a) ' of ' num2str(num_models)]);
     can_mod = p.nom_mod;
     beta(:,:,a)=p.init_beta;
 
@@ -65,7 +64,9 @@ for a = 1:num_models
 %         while pass(a) ~= 1
             [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(:,a));
             models(:,a) = [can_mod;chosen];
-
+            
+    disp(['Running model adaptation ' num2str(a) ' of ' ...
+        num2str(num_models) ': y = ' char(models(1,a).eqn_sym)]);
 %             if a==1
 %                 pass(a)=1;
 %             end
@@ -183,7 +184,7 @@ for a = 1:num_models
                     if max_corr(x,a)/sum_abs_error(x,a) > best_corr/best_error
 
                         best_mod=models(1,a);
-
+        
                         best_error=sum_abs_error(x,a);
                         best_corr = max_corr(x,a);
                         y_best = y_ave(:,1,x);

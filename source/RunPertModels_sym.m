@@ -84,8 +84,8 @@ function output = RunPertModels_sym(model_options,beta,p)
                 end
                 
             end
-            models(count).eqn_sym = GetEqnSym(models(count));
-            models(count).eqn_str = GetEqnStr_sym(models(count),p.allvars);
+            models(count).eqn_sym = GetEqnSym(models(count),p);
+            models(count).eqn_str = GetEqnStr_sym(models(count),p.allvars,p);
          end
          
             model_eqns = [models.eqn_sym];
@@ -153,14 +153,23 @@ function output = RunPertModels_sym(model_options,beta,p)
         end
         dTheta=[shuffle(dTheta(:,1)),shuffle(dTheta(:,2)),shuffle(dTheta(:,3))];
     elseif strcmpi(p.mod_adapt.mc_opt,'pardif')
-        pert = .1;
-        dTheta = repmat(lumpedparams,[length(lumpedparams)*2,1]);
-        inc=1;
-        for count=1:2:size(dTheta,1)
-        % perturb each model parameter larger and smaller    
-            dTheta(count:count+1,inc) = [(1+pert) 0; 0 (1-pert)]*dTheta(count:count+1,inc);
-            inc=inc+1;
+%         pert = .01;
+        pert = p.mod_adapt.param_pert;
+        dTheta = repmat(lumpedparams,[length(lumpedparams),1]);
+        if p.mod_adapt.param_pert_sides == 1            
+            for count=1:size(dTheta,1)
+                dTheta(count,count) = dTheta(count,count)*(1+pert);
+            end
+        else
+            inc=1;
+            for count=1:2:size(dTheta,1)
+            % perturb each model parameter larger and smaller    
+                dTheta(count:count+1,inc) = [(1+pert) 0; 0 (1-pert)]*dTheta(count:count+1,inc);
+                inc=inc+1;
+            end
         end
+       
+        
     else%standard NLS approach
         pert=beta;
         dTheta=0;
@@ -170,14 +179,24 @@ function output = RunPertModels_sym(model_options,beta,p)
     
     %disp(['number of model options: ' num2str(length(model_options))]);
     for j = 1:length(model_options)	
-        for bs=1:length(beta)
-        model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{['b' num2str(bs)]},eval(['b' num2str(bs)]));
-        model_eqns(j) = subs(model_eqns(j),{['b' num2str(bs)]},eval(['b' num2str(bs)]));
+%         for bs=1:length(beta)
+%         model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{['b' num2str(bs)]},eval(['b' num2str(bs)]));
+%         model_eqns(j) = subs(model_eqns(j),{['b' num2str(bs)]},eval(['b' num2str(bs)]));
+%         end
+        % perturb gamma value of corresponding model term 
+        for count = 1:length(beta)
+            if count==j-1 % perturb one term
+                eval(['g' num2str(count) ' = model_options(j).terms(count).gamma + beta(count);']);
+            else
+                eval(['g' num2str(count) ' = model_options(j).terms(count).gamma;']);
+            end
         end
         
-        outstr = GetEqnStr_sym(model_eqns(j),p.allvars,'eqn');
-        
-        
+%         outstr = GetEqnStr_sym(model_eqns(j),p.allvars,p,'eqn');
+            outstr = models(1).eqn_str;
+%         if strcmpi(outstr,'u(2)*Ti*abs(u(2)^g2) + u(1)*Tk*abs(u(1)^g1)')
+%             outstr = 'sign(u(2))*abs(u(2))^(1+g2)*Ti + sign(u(1))*abs(u(1))^(1+g1)*Tk';
+%         end
         try
             sim(p.simulation.sim_model,[],options);
             y0(:,j)=y_tmp;
@@ -256,7 +275,7 @@ function output = RunPertModels_sym(model_options,beta,p)
                     try
                         sim(p.simulation.sim_model,[],options);
                     catch
-                        fprintf(['Model form ' outstr ...
+                        fprintf(['Pardif for model ' outstr ...
                             ' failed to output a valid response in simulink.\n']);
 %                         pause(.01);
 %                         keyboard

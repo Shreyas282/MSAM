@@ -13,23 +13,26 @@ try
     end
 end
 for j = 1:length(pert_mods)
-    can_mod.terms(opts(j)).val = pert_mods(j).terms(opts(j)).val*...
-                                 pert_mods(j).terms(opts(j)).pert;
-    can_mod.terms(opts(j)).val = subs(can_mod.terms(opts(j)).val,...
-                                      {['b' num2str(j)]},[g(j)]);
-                                  
+%     can_mod.terms(opts(j)).val = pert_mods(j).terms(opts(j)).val*...
+%                                  pert_mods(j).terms(opts(j)).pert;
+%     can_mod.terms(opts(j)).val = subs(can_mod.terms(opts(j)).val,...
+%                                       {['b' num2str(j)]},[g(j)]);
+    can_mod.terms(opts(j)).gamma = g(j);             
+    
 end
 
 can_mod.eqn_sym = GetEqnSym(can_mod);
-can_mod.eqn_str = GetEqnStr_sym(can_mod,p.allvars);
+can_mod.eqn_str = GetEqnStr_sym(can_mod,p.allvars,p);
 
 
 for j = 1:length(pert_mods)
     for count=1:length([can_mod.terms])
         pert_mods(j).terms(count).val = can_mod.terms(count).val; 
+        pert_mods(j).terms(count).gamma = can_mod.terms(count).gamma;
     end
-    pert_mods(j).eqn_sym = GetEqnSym(pert_mods(j),opts(j));
-    pert_mods(j).eqn_str = GetEqnStr_sym(pert_mods(j),p.allvars);
+%     pert_mods(j).eqn_sym = GetEqnSym(pert_mods(j),opts(j));
+    pert_mods(j).eqn_sym = GetEqnSym(pert_mods(j),p);
+    pert_mods(j).eqn_str = GetEqnStr_sym(pert_mods(j),p.allvars,p);
 end
 
 

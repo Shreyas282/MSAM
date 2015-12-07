@@ -1,4 +1,4 @@
-function yhat = RunCtrlModel(sim_model,p)
+function [yhat, effort] = RunCtrlModel(sim_model,p)
 
 outstr = sim_model;
 time_span = p.simulation.time_span;
@@ -17,5 +17,5 @@ samp_time = p.simulation.samp_time;
 sim(p.simulation.sim_model,[],options);
 
 yhat = y_tmp;
-
+effort = u;
 end

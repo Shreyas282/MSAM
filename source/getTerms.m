@@ -78,6 +78,7 @@ if strcmpi(type,'mod')
             output.terms(j).type = 'ext';
         end
 %         output.terms(j) = eval(fexchar(splits(j):splits(j+1)-1));
+        output.terms(j).gamma = 0;
     end
 elseif strcmpi(type,'eqn')
     for j = 1:length(splits)-1

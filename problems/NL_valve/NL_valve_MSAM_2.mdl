@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.4"
+    ComputedModelVersion    "1.31"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,11 +25,11 @@ Model {
   Creator		  "KushalSahare"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "Kushal"
+  LastModifiedBy	  "TheQuarry"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Sep 24 14:06:34 2015"
-  RTWModifiedTimeStamp	  365004372
-  ModelVersionFormat	  "1.%<AutoIncrement:4>"
+  LastModifiedDate	  "Fri Dec 04 17:43:37 2015"
+  RTWModifiedTimeStamp	  371151812
+  ModelVersionFormat	  "1.%<AutoIncrement:31>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,7 +67,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "NL_valve_MSAM_2"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -689,10 +688,6 @@ Model {
       PreserveConstantTs      off
     }
     Block {
-      BlockType		      Derivative
-      CoefficientInTFapproximation "inf"
-    }
-    Block {
       BlockType		      Display
       Format		      "short"
       Decimation	      "10"
@@ -782,7 +777,7 @@ Model {
   }
   System {
     Name		    "NL_valve_MSAM_2"
-    Location		    [-238, 142, 1108, 784]
+    Location		    [40, 178, 1386, 820]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -796,16 +791,16 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "32"
+    SIDHighWatermark	    "46"
     Block {
       BlockType		      BusCreator
-      Name		      "Bus\nCreator"
-      SID		      "25"
-      Ports		      [3, 1]
-      Position		      [360, 166, 365, 204]
+      Name		      "Bus\nCreator1"
+      SID		      "33"
+      Ports		      [2, 1]
+      Position		      [295, 166, 300, 204]
       ZOrder		      -2
       ShowName		      off
-      Inputs		      "3"
+      Inputs		      "2"
       DisplayOption	      "bar"
     }
     Block {
@@ -818,44 +813,46 @@ Model {
       BlockType		      Constant
       Name		      "Constant"
       SID		      "3"
-      Position		      [465, 205, 495, 235]
+      Position		      [470, 230, 500, 260]
       ZOrder		      -4
       Value		      "4"
-    }
-    Block {
-      BlockType		      Derivative
-      Name		      "Derivative"
-      SID		      "26"
-      Position		      [295, 250, 325, 280]
-      ZOrder		      -1
     }
     Block {
       BlockType		      Display
       Name		      "Display"
       SID		      "32"
       Ports		      [1]
-      Position		      [490, 75, 580, 105]
+      Position		      [530, 35, 620, 65]
       ZOrder		      -1
       Decimation	      "1"
       Lockdown		      off
     }
     Block {
       BlockType		      Integrator
-      Name		      "Integrator"
-      SID		      "27"
+      Name		      "Integrator1"
+      SID		      "35"
       Ports		      [1, 1]
-      Position		      [290, 80, 320, 110]
+      Position		      [185, 240, 215, 270]
       ZOrder		      -2
     }
     Block {
       BlockType		      MATLABFcn
-      Name		      "Interpreted MATLAB\nFunction"
-      SID		      "28"
+      Name		      "Interpreted MATLAB\nFunction1"
+      SID		      "36"
       Ports		      [1, 1]
-      Position		      [390, 170, 460, 200]
+      Position		      [330, 170, 400, 200]
       ZOrder		      -2
       MATLABFcn		      "eval(outstr)"
-      OutputSignalType	      "real"
+    }
+    Block {
+      BlockType		      MATLABFcn
+      Name		      "Interpreted MATLAB\nFunction2"
+      SID		      "41"
+      Ports		      [1, 1]
+      Position		      [330, 80, 400, 110]
+      ZOrder		      -2
+      MATLABFcn		      "eval(outstr)"
+      OutputSignalType	      "complex"
     }
     Block {
       BlockType		      Math
@@ -875,23 +872,10 @@ Model {
       Denominator	      "[1, 3, 3, 1]"
     }
     Block {
-      BlockType		      Reference
-      Name		      "PID Controller1"
-      SID		      "17"
-      Ports		      [1, 1]
-      Position		      [160, 160, 190, 190]
-      LibraryVersion	      "1.13"
-      SourceBlock	      "simulink_need_slupdate/PID Controller"
-      SourceType	      "PID Controller"
-      P			      "1"
-      I			      "0"
-      D			      "0"
-    }
-    Block {
       BlockType		      Step
       Name		      "Reference Volt"
       SID		      "9"
-      Position		      [15, 165, 45, 195]
+      Position		      [20, 160, 50, 190]
       Time		      "0"
       After		      "p.simulation.Cm"
       SampleTime	      "0"
@@ -901,7 +885,7 @@ Model {
       Name		      "Sum"
       SID		      "10"
       Ports		      [2, 1]
-      Position		      [90, 170, 110, 190]
+      Position		      [90, 165, 110, 185]
       ZOrder		      -32
       ShowName		      off
       IconShape		      "round"
@@ -935,9 +919,20 @@ Model {
     Block {
       BlockType		      ToWorkspace
       Name		      "To Workspace3"
-      SID		      "29"
+      SID		      "42"
       Ports		      [1]
-      Position		      [275, 15, 335, 45]
+      Position		      [425, 25, 485, 55]
+      VariableName	      "u1"
+      MaxDataPoints	      "inf"
+      SampleTime	      "samp_time"
+      SaveFormat	      "Array"
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "To Workspace4"
+      SID		      "37"
+      Ports		      [1]
+      Position		      [215, 15, 275, 45]
       VariableName	      "P"
       MaxDataPoints	      "inf"
       SampleTime	      "samp_time"
@@ -945,22 +940,11 @@ Model {
     }
     Block {
       BlockType		      ToWorkspace
-      Name		      "To Workspace5"
-      SID		      "30"
-      Ports		      [1]
-      Position		      [355, 60, 415, 90]
-      VariableName	      "I"
-      MaxDataPoints	      "inf"
-      SampleTime	      "samp_time"
-      SaveFormat	      "Array"
-    }
-    Block {
-      BlockType		      ToWorkspace
       Name		      "To Workspace6"
-      SID		      "31"
+      SID		      "38"
       Ports		      [1]
-      Position		      [395, 250, 455, 280]
-      VariableName	      "D"
+      Position		      [270, 240, 330, 270]
+      VariableName	      "I"
       MaxDataPoints	      "inf"
       SampleTime	      "samp_time"
       SaveFormat	      "Array"
@@ -970,7 +954,7 @@ Model {
       Name		      "To Workspace7"
       SID		      "16"
       Ports		      [1]
-      Position		      [665, 60, 725, 90]
+      Position		      [665, 80, 725, 110]
       VariableName	      "u"
       MaxDataPoints	      "inf"
       SampleTime	      "samp_time"
@@ -999,16 +983,8 @@ Model {
     Line {
       SrcBlock		      "Math\nFunction"
       SrcPort		      1
-      Points		      [55, 0]
-      Branch {
-	DstBlock		"Motor Model"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, -120]
-	DstBlock		"To Workspace7"
-	DstPort			1
-      }
+      DstBlock		      "Motor Model"
+      DstPort		      1
     }
     Line {
       SrcBlock		      "Clock"
@@ -1017,96 +993,90 @@ Model {
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Derivative"
-      SrcPort		      1
-      Points		      [10, 0]
-      Branch {
-	Points			[0, -70]
-	DstBlock		"Bus\nCreator"
-	DstPort			3
-      }
-      Branch {
-	DstBlock		"To Workspace6"
-	DstPort			1
-      }
-    }
-    Line {
-      SrcBlock		      "Integrator"
-      SrcPort		      1
-      Points		      [5, 0]
-      Branch {
-	Points			[0, -20]
-	DstBlock		"To Workspace5"
-	DstPort			1
-      }
-      Branch {
-	Points			[-5, 0; 0, 90]
-	DstBlock		"Bus\nCreator"
-	DstPort			2
-      }
-    }
-    Line {
-      SrcBlock		      "Bus\nCreator"
-      SrcPort		      1
-      DstBlock		      "Interpreted MATLAB\nFunction"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Interpreted MATLAB\nFunction"
-      SrcPort		      1
-      Points		      [5, 0]
-      Branch {
-	DstBlock		"Math\nFunction"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, -95]
-	DstBlock		"Display"
-	DstPort			1
-      }
-    }
-    Line {
       SrcBlock		      "Constant"
       SrcPort		      1
-      Points		      [0, -20]
       DstBlock		      "Math\nFunction"
       DstPort		      2
     }
     Line {
-      SrcBlock		      "PID Controller1"
+      SrcBlock		      "Integrator1"
       SrcPort		      1
-      Points		      [50, 0]
+      Points		      [25, 0]
       Branch {
-	Points			[0, -145]
-	DstBlock		"To Workspace3"
+	DstBlock		"To Workspace6"
 	DstPort			1
       }
       Branch {
-	Points			[15, 0]
-	Branch {
-	  Points		  [0, 90]
-	  DstBlock		  "Derivative"
-	  DstPort		  1
-	}
-	Branch {
-	  Points		  [15, 0]
-	  Branch {
-	    DstBlock		    "Bus\nCreator"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "Integrator"
-	    DstPort		    1
-	  }
-	}
+	Points			[0, -60]
+	DstBlock		"Bus\nCreator1"
+	DstPort			2
+      }
+    }
+    Line {
+      Labels		      [1, 0]
+      SrcBlock		      "Bus\nCreator1"
+      SrcPort		      1
+      Points		      [5, 0]
+      Branch {
+	DstBlock		"Interpreted MATLAB\nFunction1"
+	DstPort			1
+      }
+      Branch {
+	Labels			[1, 0]
+	Points			[0, -90]
+	DstBlock		"Interpreted MATLAB\nFunction2"
+	DstPort			1
       }
     }
     Line {
       SrcBlock		      "Sum"
       SrcPort		      1
-      Points		      [15, 0; 0, -5]
-      DstBlock		      "PID Controller1"
+      Points		      [45, 0]
+      Branch {
+	Points			[30, 0]
+	Branch {
+	  Points		  [0, -145]
+	  DstBlock		  "To Workspace4"
+	  DstPort		  1
+	}
+	Branch {
+	  DstBlock		  "Bus\nCreator1"
+	  DstPort		  1
+	}
+      }
+      Branch {
+	Points			[0, 80]
+	DstBlock		"Integrator1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Interpreted MATLAB\nFunction2"
+      SrcPort		      1
+      Points		      [0, -55]
+      DstBlock		      "To Workspace3"
       DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Interpreted MATLAB\nFunction1"
+      SrcPort		      1
+      Points		      [40, 0]
+      Branch {
+	DstBlock		"Math\nFunction"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -90; 50, 0]
+	Branch {
+	  DstBlock		  "To Workspace7"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, -45]
+	  DstBlock		  "Display"
+	  DstPort		  1
+	}
+      }
     }
   }
 }

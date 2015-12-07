@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.9"
+    ComputedModelVersion    "1.26"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,11 +25,11 @@ Model {
   Creator		  "KushalSahare"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "KushalSahare"
+  LastModifiedBy	  "Kushal"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Sep 09 16:05:47 2015"
-  RTWModifiedTimeStamp	  363715197
-  ModelVersionFormat	  "1.%<AutoIncrement:9>"
+  LastModifiedDate	  "Tue Nov 24 16:07:11 2015"
+  RTWModifiedTimeStamp	  370282026
+  ModelVersionFormat	  "1.%<AutoIncrement:26>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -801,7 +801,7 @@ Model {
   }
   System {
     Name		    "NL_valve"
-    Location		    [2, 83, 1348, 725]
+    Location		    [-277, 83, 1069, 725]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -815,7 +815,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "45"
+    SIDHighWatermark	    "48"
     Block {
       BlockType		      Bias
       Name		      "Bias"
@@ -837,7 +837,7 @@ Model {
       SID		      "7"
       Position		      [475, 195, 505, 225]
       ZOrder		      -4
-      Value		      "4"
+      Value		      "p.nl_order"
     }
     Block {
       BlockType		      Gain
@@ -908,15 +908,15 @@ Model {
     Block {
       BlockType		      Reference
       Name		      "PID Controller1"
-      SID		      "2"
+      SID		      "48"
       Ports		      [1, 1]
-      Position		      [185, 170, 215, 200]
+      Position		      [170, 170, 200, 200]
       LibraryVersion	      "1.13"
       SourceBlock	      "simulink_need_slupdate/PID Controller"
       SourceType	      "PID Controller"
-      P			      "par(1)"
-      I			      "par(2)"
-      D			      "par(3)"
+      P			      "0.1"
+      I			      "0.1"
+      D			      "0"
     }
     Block {
       BlockType		      Step
@@ -924,7 +924,7 @@ Model {
       SID		      "4"
       Position		      [30, 170, 60, 200]
       Time		      "0"
-      After		      "Cm"
+      After		      "p.simulation.Cm"
       SampleTime	      "0"
     }
     Block {
@@ -985,7 +985,7 @@ Model {
       SID		      "11"
       Ports		      [1]
       Position		      [960, 180, 1020, 210]
-      VariableName	      "y"
+      VariableName	      "y_tmp"
       MaxDataPoints	      "inf"
       SampleTime	      "samp_time"
       SaveFormat	      "Array"
@@ -1039,25 +1039,6 @@ Model {
       SrcPort		      1
       DstBlock		      "PID Controller1"
       DstPort		      1
-    }
-    Line {
-      SrcBlock		      "PID Controller1"
-      SrcPort		      1
-      Points		      [10, 0]
-      Branch {
-	DstBlock		"Interval Test"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, -65]
-	DstBlock		"Gain"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, 70]
-	DstBlock		"Gain1"
-	DstPort			1
-      }
     }
     Line {
       SrcBlock		      "Reference Volt"
@@ -1137,6 +1118,25 @@ Model {
       Points		      [0, -55]
       DstBlock		      "Switch"
       DstPort		      3
+    }
+    Line {
+      SrcBlock		      "PID Controller1"
+      SrcPort		      1
+      Points		      [25, 0]
+      Branch {
+	DstBlock		"Interval Test"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -65]
+	DstBlock		"Gain"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 70]
+	DstBlock		"Gain1"
+	DstPort			1
+      }
     }
   }
 }

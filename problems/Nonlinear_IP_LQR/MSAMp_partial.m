@@ -182,7 +182,8 @@ parfor a = 1:num_models
                 if p.mod_adapt.bestpass
                     %update best model
                     %     if sum_abs_error(a,end)<best_error
-                    if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
+                    if sum_abs_error_a(x) < best_error_p(a)
+%                     if max_corr_a(x)/sum_abs_error_a(x) > best_corr_p(a)/best_error_p(a)
 
 %                         best_mod_p(a)=models(a,1);
 %                         if ~model_disp
@@ -300,8 +301,8 @@ best_error = nom_error;
 best_corr = nom_corr;
 continueontosecondphase=0;
 for a=1:num_models
-    if best_corr_p(a)/best_error_p(a) > best_corr/best_error
-
+%     if best_corr_p(a)/best_error_p(a) > best_corr/best_error
+     if best_error_p(a) < best_error
       best_mod=best_models_p(1,a);
 
         best_error = best_error_p(a);
@@ -407,7 +408,8 @@ for x = itsstart:its2
         dMC2(:,x) = outputs.dMC;
         
         %% --- Update best model
-        if max_corr2(x)/sum_abs_error2(x) > best_corr/best_error
+        if sum_abs_error2(x) < best_error
+%         if max_corr2(x)/sum_abs_error2(x) > best_corr/best_error
     %       if max_corr(end) > best_corr
             best_mod = best_models(1);
 

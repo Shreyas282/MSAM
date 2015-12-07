@@ -4,8 +4,8 @@ clear
 clc
 
  %% number of iterations
-        its = 3; % number of iterations for each perturbation case
-        its2 =25; % number of iterations for selected perturbation set
+        its = 10; % number of iterations for each perturbation case
+        its2 =10; % number of iterations for selected perturbation set
         p.gg =18;
 
 %% saving options
@@ -212,10 +212,10 @@ end
     disp(['nominal model: ' char(p.nom_mod.eqn_sym)]);
 
     %% model adaptation settings
-    p.mod_adapt.beta_start = .2*ones(p.num_terms,1);
+    p.mod_adapt.beta_start = .05*ones(p.num_terms,1);
     p.init_beta = repmat(p.mod_adapt.beta_start,1,its);
     p.mod_adapt.maxbeta = 0.3;
-    p.mod_adapt.minbeta = .01;
+    p.mod_adapt.minbeta = .005;
     p.mod_adapt.betastep = .2;
     % betahist = [beta,zeros(length(beta),its)];
     p.mod_adapt.minDMC = .1;
@@ -231,8 +231,10 @@ end
     p.mod_adapt.struct_err_opt = 'error';
     p.mod_adapt.corr_trigger = 1;
     p.mod_adapt.err_trigger = 5;
-    p.mod_adapt.mc_opt='pardif'; % model complexity measure type
+    p.mod_adapt.mc_opt='pertsize'; % model complexity measure type
     p.mod_adapt.mc_opt2=0;
+    p.mod_adapt.param_pert = 0.01;
+    p.mod_adapt.param_pert_sides = 1; %1 for one sided, 2 for two-sided
     % options for p.mc_opt:
     % 'pardif' - dM = norm of difference in parameter sensitivity
     % 'pertsize' - dM = beta (perturbation size)
@@ -257,11 +259,11 @@ end
     p.yhat = RunCtrlModel(p.nom_mod.eqn_str,p);
 
 %    p.Y = zeros(size(p.yhat));
-    
+%     p.Y = 0.5*p.Y;
     %% Program MSAM
 
    
-    parallel = 0;
+    parallel = 1;
     
 for opt =0
     for devcnt = 0

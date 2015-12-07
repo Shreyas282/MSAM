@@ -77,7 +77,7 @@ parfor a = 1:num_models
             [chosen,can_mod] = ChoosePertType(can_mod,p,pert_index(a,:));
             models = [can_mod;chosen];
     disp(['Running model adaptation ' num2str(a) ' of ' ...
-           num2str(num_models) ': y = ' char(models(1).eqn_form)]);
+           num2str(num_models) ': y = ' char(models(1).eqn_sym)]);
 %             if a==1
 %                 pass(a)=1;
 %             end
@@ -319,7 +319,13 @@ for a=1:num_models
         continueontosecondphase=1;
     end
 end
+
 if continueontosecondphase
+    for a = 1:num_models
+        if best_corr_p(a)/best_error_p(a) == best_corr/best_error
+            disp('WARNING: tie between models in round robin phase');
+        end
+    end
 %% plot winner from first round
     if p.plotinloop
         figure;
@@ -373,9 +379,9 @@ for x = itsstart:its2
     
    % p.mod_adapt.algebra = 0;
     %% --- model adaptation routine
-    if x == its2
-        keyboard
-    end
+%     if x == its2
+%         keyboard
+%     end
     try
         
         [p_t2(:,x),phi2(:,:,x),error2(:,x),sum_abs_error2(x),max_corr2(x),outputs,pass3] = Sensitivity_compute(best_models,beta2(:,x-1),gamma2(:,x-1),rho2(:,x-1),p_t2(:,x-1),p);

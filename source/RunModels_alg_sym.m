@@ -109,8 +109,8 @@ function output = RunModels_alg_sym(model_options,beta,p)
                 
             end
             
-            models(count).eqn_sym = GetEqnSym(models(count));
-            models(count).eqn_str = GetEqnStr_sym(models(count),p.allvars);
+            models(count).eqn_sym = GetEqnSym(models(count),p);
+            models(count).eqn_str = GetEqnStr_sym(models(count),p.allvars,p);
          end
          
             model_eqns = [models.eqn_sym];

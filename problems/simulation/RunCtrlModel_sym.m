@@ -1,6 +1,6 @@
-function [yhat, effort] = RunCtrlModel(sim_model,p)
+function [yhat, effort] = RunCtrlModel_sym(model,p)
 
-outstr = sim_model;
+% outstr = sim_model;
 time_span = p.simulation.time_span;
 samp_time = p.simulation.samp_time;
  options=simset('SrcWorkspace','current','DstWorkspace','current');
@@ -13,7 +13,13 @@ samp_time = p.simulation.samp_time;
             end
         end
   end
-    
+  % define gamma terms
+  for i = 1:length(model.terms)
+      eval(['g' num2str(i) ' = model.terms(i).gamma;']);
+  end
+  
+outstr = model.eqn_str;  
+
 sim(p.simulation.sim_model,[],options);
 
 yhat = y_tmp;

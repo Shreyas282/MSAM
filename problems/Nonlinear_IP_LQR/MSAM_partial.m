@@ -183,7 +183,7 @@ for a = 1:num_models
 %% --- Update best model
                 if p.mod_adapt.bestpass
                     %update best model
-                    %     if sum_abs_error(a,end)<best_error
+%                     if sum_abs_error(x,a)<best_error
                     if max_corr(x,a)/sum_abs_error(x,a) > best_corr/best_error
 
                         best_mod=models(1,a);
@@ -263,7 +263,7 @@ for a = 1:num_models
                 end
                 %     end
             else
-                keyboard
+%                 keyboard
             end
         end
         clearvars y0 y_all y_ave
@@ -352,6 +352,7 @@ for x = itsstart:its2
         y_ave2(:,:,x)=outputs.y_ave;
         dMC2(:,x) = outputs.dMC;
 %% --- Update best model
+%             if sum_abs_error2(x)<best_error
             if max_corr2(x)/sum_abs_error2(x) > best_corr/best_error
         %       if max_corr(end) > best_corr
                 best_mod = best_models(1);
