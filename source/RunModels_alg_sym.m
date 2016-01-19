@@ -114,7 +114,7 @@ function output = RunModels_alg_sym(model_options,beta,p)
          end
          
             model_eqns = [models.eqn_sym];
-            removals=constants==0;
+            removals=logical(constants==0);
             constants(removals)=[];
             constantval(removals)=[];
             lumpedparams=double(constantval);
@@ -193,7 +193,16 @@ function output = RunModels_alg_sym(model_options,beta,p)
 %         model_options(j).eqn_sym = subs(model_options(j).eqn_sym,{'b1','b2'},[b1 b2]);
 %         model_eqns(j) = subs(model_eqns(j),{'b1','b2'},[b1 b2]);
 %         outstr = GetEqnStr_sym(model_eqns(j),p.allvars,'eqn');
-        model_str = regexprep(char(model_eqns(j)),'\^','\.\^');
+        % perturb gamma value of corresponding model term 
+        for count = 1:length(beta)
+            if count==j-1 % perturb one term
+                eval(['g' num2str(count) ' = model_options(j).terms(count).gamma + beta(count);']);
+            else
+                eval(['g' num2str(count) ' = model_options(j).terms(count).gamma;']);
+            end
+        end
+        model_str = char(models(1).eqn_sym);
+        model_str = regexprep(model_str,'\^','\.\^');
         model_str = regexprep(model_str,'\*','\.\*');
         model_str = regexprep(model_str,'\/','\.\/');
         model_str = regexprep(model_str,'abs\(q\)','sign\(q\)\.\*abs\(q\)');

@@ -104,7 +104,7 @@ p.nom_mod.eqn_sym = c1*(E - X);
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
-p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars);
+p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars,p);
 p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
 disp(['nominal model: ' char(p.nom_mod.eqn_form)]);
 %% model adaptation settings
@@ -180,7 +180,7 @@ p.yhat = EvalModel(p.nom_mod.eqn_sym,p);
 %     xlabel('t','fontsize',14);
 % % 
    
-parallel = 1;
+parallel = 0;
     
 for opt =0
     for devcnt = 0

@@ -4,7 +4,7 @@ function out = MSAMp(p,its,its2)
 try
 out=[];
 disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
-disp(' Running MSAMp version 1.0.2-wgl');
+disp(' Running MSAMp version 1.0.3-wgl');
 disp('///////////////////////////////');
 
 disp(['Number of round robin iterations: ' num2str(its)]);
