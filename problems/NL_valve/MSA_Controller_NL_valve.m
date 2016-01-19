@@ -6,7 +6,7 @@ clc
 
  %% number of iterations
         its = 10; % number of iterations for each perturbation case
-        its2 = 5; % number of iterations for selected perturbation set
+        its2 = 100; % number of iterations for selected perturbation set
 
 
 %% saving options
@@ -135,7 +135,7 @@ end
     p.mod_adapt.bestpass =1;
     p.mod_adapt.valleycontrol = 1;
     %% plotting options
-    p.plotinloop=1;
+    p.plotinloop=0;
     p.plotinloop2=1;
     p.mod_adapt.MC_NLS_plot =0;
 

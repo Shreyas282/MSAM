@@ -15,7 +15,17 @@ if ~p.continuept2
     %% initial error, correlation and string distance
     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
     %pert_index = zeros(length(p.intvars),p.num_terms);
-    a = repmat({1:length(p.intvars)},1,p.num_terms);
+    try
+        tmp = 1:length(p.intvars);
+        a={};
+        for z=1:p.num_terms
+            a{end+1} = tmp(p.interaction(:,z));
+        end
+    catch 
+        disp(['warning: interaction matrix not defined. all combos of ' ...
+            'terms and perturbation variables will be tried.']);
+        a = repmat({1:length(p.intvars)},1,p.num_terms);
+    end
     pert_index = allcomb(a{:})';
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));

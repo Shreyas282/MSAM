@@ -39,7 +39,7 @@ for s=19
     p.savepath = ['D:\MSAM\VIV\VIV_' num2str(s)];
 set = s;
 
-tmp_cons = par_estimate_VIV(set);
+% tmp_cons = par_estimate_VIV(set);
 % A_val = 12;
 % eps_val = 0.0138;
 p.cons = {'A', 'eps', 'St', 'D','U'; 
@@ -101,7 +101,7 @@ p.nom_mod.eqn_sym = (QDDOT + eps*(2*pi*St*U/D)*(Q^2-1)*QDOT...
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
-p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars);
+p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars,p);
 p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
 disp(['nominal model: ' char(p.nom_mod.eqn_form)]);
 %% model adaptation settings
@@ -176,8 +176,13 @@ p.yhat = EvalModel(p.nom_mod.eqn_sym,p);
 %     set(l,'interpreter','latex','fontsize',14);
 %     xlabel('t','fontsize',14);
 % % 
-   
-parallel = 1;
+% interaction matrix nxm: n = number of variables, m = number of terms
+% 1 means they interact, 0 means they don't
+
+p.interaction = logical([1 1 0 1;
+                 1 1 0 1;
+                 0 1 1 0]);
+parallel = 0;
     
 for opt =0
     for devcnt = 0
