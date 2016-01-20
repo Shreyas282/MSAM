@@ -13,7 +13,7 @@ disp(['Number of final adaptation iterations: ' num2str(its2)]);
 if ~p.continuept2    
      colors = ['r','b','g','m','c'];
     %% initial error, correlation and string distance
-    num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
+%     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
     %pert_index = zeros(length(p.intvars),p.num_terms);
     try
         tmp = 1:length(p.intvars);
@@ -27,10 +27,11 @@ if ~p.continuept2
         a = repmat({1:length(p.intvars)},1,p.num_terms);
     end
     pert_index = allcomb(a{:})';
+    num_models = length(pert_index);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
-   
+    
     max_corr = nom_corr;
     best_corr  = nom_corr;
     %best_gamma = [0,0];

@@ -13,7 +13,7 @@ digits(6);
 if ~p.continuept2    
      colors = ['r','b','g','m','c'];
     %% initial error, correlation and string distance
-    num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
+%     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
 %     num_models=8;
 %pert_index = zeros(length(p.intvars),p.num_terms);
 	try
@@ -29,7 +29,8 @@ if ~p.continuept2
     end
   
     pert_index = allcomb(a{:});
-    pert_index = shuffle(pert_index,1);
+    num_models = length(pert_index);
+%     pert_index = shuffle(pert_index,1);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
