@@ -57,7 +57,7 @@ function output = RunModels_alg_sym(model_options,beta,p)
      
      
     % declare new variables to represent coefficients
-      A = sym('a',[getNumTerms(model_eqns(2)),1]);
+      A = sym('param',[getNumTerms(model_eqns(2)),1]);
 
      % sub new lumped constants into coefficient spots
          models = model_options;
@@ -80,7 +80,7 @@ function output = RunModels_alg_sym(model_options,beta,p)
                      
                      constantval(count2) = coeffs(models(count).terms(count2).val);
 %                      if constantval(count2)~=1
-                        constants(count2) = eval(['sym(''a' num2str(count2) ''');']);
+                        constants(count2) = eval(['sym(''param' num2str(count2) ''');']);
 %                      end
                      
 %                  end              

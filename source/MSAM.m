@@ -19,23 +19,32 @@ if ~p.continuept2
         tmp = 1:length(p.intvars);
         a={};
         for z=1:p.num_terms
-            a{end+1} = tmp(p.interaction(:,z));
+            if ~isempty(tmp(p.interaction(:,z)))
+                a{end+1} = tmp(p.interaction(:,z));
+            else
+                a{end+1} = zeros(length(tmp),1);
+            end
         end
     catch 
         disp(['warning: interaction matrix not defined. all combos of ' ...
             'terms and perturbation variables will be tried.']);
         a = repmat({1:length(p.intvars)},1,p.num_terms);
     end
-    pert_index = allcomb(a{:})';
+  
+    pert_index = unique(allcomb(a{:}),'rows')';
     num_models = length(pert_index);
+    num_perturbed_terms = length(pert_index(pert_index(:,1)>0,1));
+    
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
     
+    p.init_beta = repmat(p.mod_adapt.beta_start,num_perturbed_terms,its);
+    p.init_mu = repmat(p.mod_adapt.mustart,num_perturbed_terms,its);
     max_corr = nom_corr;
     best_corr  = nom_corr;
     %best_gamma = [0,0];
-    best_rho = zeros(p.num_terms,1);
+    best_rho = zeros(num_perturbed_terms,1);
     best_error = nom_error;
     sum_abs_error=nom_error;
     best_mod = p.nom_mod; % best model from all runs
@@ -45,15 +54,15 @@ if ~p.continuept2
     p.mod_adapt.valleycontrol = 1;
     win_criteria = .9995;
        
-    nom_gamma = ones(p.num_terms,1);
-    phi = zeros(p.simulation.ndata,p.num_terms,its,num_models);
+    nom_gamma = ones(num_perturbed_terms,1);
+    phi = zeros(p.simulation.ndata,num_perturbed_terms,its,num_models);
     error = zeros(p.simulation.ndata,its);
-    gamma=zeros(p.num_terms,its,num_models); %reset can_mod = nom_mod
-    rho = zeros(p.num_terms,its,num_models);
+    gamma=zeros(num_perturbed_terms,its,num_models); %reset can_mod = nom_mod
+    rho = zeros(num_perturbed_terms,its,num_models);
     beta=[];
-    p_t = zeros(p.num_terms,its,num_models);
-    p_w = zeros(p.num_terms,its,num_models);
-    delM = zeros(p.num_terms,its,num_models);
+    p_t = zeros(num_perturbed_terms,its,num_models);
+    p_w = zeros(num_perturbed_terms,its,num_models);
+    delM = zeros(num_perturbed_terms,its,num_models);
     mu=[];
     chosen=struct();
    % pertnum=zeros(p.num_terms,num_models);
@@ -93,23 +102,24 @@ for a = 1:num_models
 
 %         if pass(a)
         t_opts=find(strcmpi({can_mod.terms(:).type},'int'));
+        % NOTE: rho is basically defunct at this point (2016-02-08 wgl)
         %choose starting value of rho
-        for j=1:length(t_opts)
-            % if the perturbation variable is already part of the term
-            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index(j,a))),'once');
-            if sum(tmp)>0
-                % if the perturbation variable is already part of the
-                % perturbed term, start rho at the exponent of that term
-                rho(j,:,a)=nom_gamma(j);
-            else
-                % otherwise we are perturbing with a new variable, so rho
-                % is the size of the perturbation
-
-                rho(j,:,a) = beta(j,:,a);
-
-
-            end
-        end
+%         for j=1:length(t_opts)
+%             % if the perturbation variable is already part of the term
+%             tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index(j,a))),'once');
+%             if sum(tmp)>0
+%                 % if the perturbation variable is already part of the
+%                 % perturbed term, start rho at the exponent of that term
+%                 rho(j,:,a)=nom_gamma(j);
+%             else
+%                 % otherwise we are perturbing with a new variable, so rho
+%                 % is the size of the perturbation
+% 
+%                 rho(j,:,a) = beta(j,:,a);
+% 
+% 
+%             end
+%         end
         % run gradient descent for chosen perturbation set
         %         if a==1
         if p.plotinloop
@@ -259,12 +269,12 @@ for a = 1:num_models
 
                 %% --- Plot Routine
                 if p.plotinloop==1
-                    phiplot = reshape(phi(:,:,x,a),[p.simulation.ndata,p.num_terms]);
+                    phiplot = reshape(phi(:,:,x,a),[p.simulation.ndata,num_perturbed_terms]);
                     %             rhoplot = reshape(rho(:,:,a),size(rho,1),size(rho,3));
                     try
                         perttitle=RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
                             sum_abs_error(1:x,a),max_corr(1:x,a),...
-                            pert_index(:,a),p_t(:,x,a),phiplot,rho(:,:,a),error(:,:,a));
+                            pert_index(:,a),p_t(:,x,a),phiplot,gamma(:,:,a),error(:,:,a));
                     catch
                         keyboard
                     end

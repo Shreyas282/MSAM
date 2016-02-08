@@ -16,11 +16,16 @@ if ~p.continuept2
 %     num_models = length(p.intvars)^p.num_terms; % number of models to try (hill climbs)
 %     num_models=8;
 %pert_index = zeros(length(p.intvars),p.num_terms);
+
 	try
         tmp = 1:length(p.intvars);
         a={};
         for z=1:p.num_terms
-            a{end+1} = tmp(p.interaction(:,z));
+            if ~isempty(tmp(p.interaction(:,z)))
+                a{end+1} = tmp(p.interaction(:,z));
+            else
+                a{end+1} = zeros(length(tmp),1);
+            end
         end
     catch 
         disp(['warning: interaction matrix not defined. all combos of ' ...
@@ -28,24 +33,26 @@ if ~p.continuept2
         a = repmat({1:length(p.intvars)},1,p.num_terms);
     end
   
-    pert_index = allcomb(a{:});
+    pert_index = unique(allcomb(a{:}),'rows');
     num_models = length(pert_index);
+    num_perturbed_terms = length(pert_index(1,pert_index(1,:)>0));
 %     pert_index = shuffle(pert_index,1);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
     tmp = corrcoef(p.Y,p.yhat(:,1));
     nom_corr = tmp(1,2);
 %     nom_corr = R2(p.Y,p.yhat(:,1));
-    
+    p.init_beta = repmat(p.mod_adapt.beta_start,num_perturbed_terms,its);
+    p.init_mu = repmat(p.mod_adapt.mustart,num_perturbed_terms,its);
     sum_abs_error=zeros(num_models,its); 
     max_corr=zeros(num_models,its); 
     best_corr_p  = nom_corr*ones(1,num_models);
     best_error_p = nom_error*ones(1,num_models);
     best_models(1:num_models) = p.nom_mod;
     best_mod = p.nom_mod; % best model from all runs
-    best_rho = zeros(p.num_terms,1);
-    best_rho_p = zeros(p.num_terms,num_models);
-    best_mu_p = repmat(p.mod_adapt.mustart,1,num_models);
-    best_beta_p = zeros(p.num_terms,num_models);
+    best_rho = zeros(num_perturbed_terms,1);
+    best_rho_p = zeros(num_perturbed_terms,num_models);
+    best_mu_p = repmat(p.mod_adapt.mustart,num_perturbed_terms,num_models);
+    best_beta_p = zeros(num_perturbed_terms,num_models);
 %     best_gamma = [0,0];
     y_best = p.yhat;
     y_best_p = repmat(p.yhat,1,num_models);
@@ -53,33 +60,35 @@ if ~p.continuept2
     p.mod_adapt.bestpass =1;
     p.mod_adapt.valleycontrol = 1;
     win_criteria = .9995;
-    best_models_p = repmat(p.nom_mod,p.num_terms+1,num_models);   
-    nom_gamma = ones(p.num_terms,1);
-    phi = zeros(num_models,p.simulation.ndata,p.num_terms,its);
+    best_models_p = repmat(p.nom_mod,num_perturbed_terms+1,num_models);   
+    nom_gamma = ones(num_perturbed_terms,1);
+    phi = zeros(num_models,p.simulation.ndata,num_perturbed_terms,its);
    
-    gamma=zeros(num_models,p.num_terms,its); %reset can_mod = nom_mod
-    rho = zeros(num_models,p.num_terms,its);
+    gamma=zeros(num_models,num_perturbed_terms,its); %reset can_mod = nom_mod
+    rho = zeros(num_models,num_perturbed_terms,its);
     for i=1:num_models, beta(i,:,:)= p.init_beta; end
-    p_t = zeros(num_models,p.num_terms,its);
-    p_w = zeros(num_models,p.num_terms,its);
-    delM = zeros(num_models,p.num_terms,its);
+    p_t = zeros(num_models,num_perturbed_terms,its);
+    p_w = zeros(num_models,num_perturbed_terms,its);
+    delM = zeros(num_models,num_perturbed_terms,its);
     mu=[];
 %     best_perttitle_p(1:a) = '';
     chosen=struct();
     outputs= struct('y0',cell(num_models,its),'y_all',[],'y_ave',[],'dMC',[]);
-   % pertnum=zeros(p.num_terms);
+   % pertnum=zeros(num_perturbed_terms);
 %    models = [];
     %% run hill climb
    
 %    n=5;
 % matlabpool;
 warning('off','all');
+pert_index_trim = pert_index(:,pert_index(1,:)>0);
+can_mod_a = repmat(p.nom_mod,num_models,1);
 parfor a = 1:num_models
     warning('off','all');
 
     %reset variables for each hill climb
     
-    can_mod = p.nom_mod;
+    can_mod = can_mod_a(a);
      
     %     nom_mod.eqn_sym = GetEqnSym(nom_mod);
     %     can_mod.eqn_str = GetEqnStr_sym(can_mod);
@@ -104,32 +113,35 @@ parfor a = 1:num_models
 %         end
 
 %         if pass(a)
-        t_opts=find(strcmpi({can_mod.terms(:).type},'int'));
+%         t_opts=find(strcmpi({can_mod.terms(:).type},'int'));
         %choose starting value of rho
-        tmp_beta = beta(a,:,:);
+%         tmp_beta = beta(a,:,:);
         tmp_rho = rho(a,:,:);
-        pert_index_a = pert_index(a,:);
-        for j=1:length(t_opts)
-            % if the perturbation variable is already part of the term
-            tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index_a(j)')),'once');
-            if sum(tmp)>0
-                % if the perturbation variable is already part of the
-                % perturbed term, start rho at the exponent of that term
-                tmp_rho(j) = nom_gamma(j);
-                %rho(a,j,:)=nom_gamma(j);
-            else
-                % otherwise we are perturbing with a new variable, so rho
-                % is the size of the perturbation
-                tmp_rho(:,j,:) = tmp_beta(:,j,:);
-                
-            end
-        end
+        pert_index_a = pert_index_trim(a,:);
+        % NOTE: rho is basically defunct at this point (2016-01-28 wgl)
+%         for j=1:length(t_opts)
+%             if pert_index_a(j)~=0
+%                 % if the perturbation variable is already part of the term
+%                 tmp=regexp([char(can_mod.terms(t_opts(j)).val)],char(p.intvars(pert_index_a(j)')),'once');
+%                 if sum(tmp)>0
+%                     % if the perturbation variable is already part of the
+%                     % perturbed term, start rho at the exponent of that term
+%                     tmp_rho(j) = nom_gamma(j);
+%                     %rho(a,j,:)=nom_gamma(j);
+%                 else
+%                     % otherwise we are perturbing with a new variable, so rho
+%                     % is the size of the perturbation
+%                     tmp_rho(:,j,:) = tmp_beta(:,j,:);
+% 
+%                 end
+%             end
+%         end
         rho(a,:,:) = tmp_rho;
         % run gradient descent for chosen perturbation set
         %         if a==1
-        if p.plotinloop
-            h = figure;
-        end
+%         if p.plotinloop
+%             h = figure;
+%         end
         %         end
         p_t_a = p_t(a,:,:); 
         p_t_a = reshape(p_t_a,size(p_t_a,2),size(p_t_a,3));
@@ -154,7 +166,7 @@ parfor a = 1:num_models
 %         mu_a = reshape(mu(a,:,:),size(mu,2),size(mu,3));
 %         best_corr_tmp = nom_corr;
 %         best_erro_tmp = nom_error;
-        dMC_a = zeros(p.num_terms,its);
+        dMC_a = zeros(num_perturbed_terms,its);
         model_disp = 0;
         for x = 2:its
             
@@ -178,12 +190,12 @@ parfor a = 1:num_models
 
              % PCA
 
-             testmat = phi_a(:,:,x)'*phi_a(:,:,x);
+%              testmat = phi_a(:,:,x)'*phi_a(:,:,x);
           
 
             if pass2
                 % set outputs
-               y0 = outputs_a(x).y0;
+%                y0 = outputs_a(x).y0;
 %                y_all=outputs_a(x).y_all;
                y_ave=outputs_a(x).y_ave;
                 dMC_a(:,x) = outputs_a(x).dMC;
@@ -204,7 +216,7 @@ parfor a = 1:num_models
                         best_rho_p(:,a) = rho_a(:,x-1);
 %                         best_rho_hist = rho_a;
                         best_models_p(:,a) = models;
-                        best_pertnum_p(a,:) =pert_index(a,:);
+                        best_pertnum_p(a,:) =pert_index_a;%(a,pert_index(a,:)>0);
                         best_mu_p(:,a) = mu_a(:,x-1);
                         best_beta_p(:,a) = beta_a(:,x);
 %                         endits = x;
@@ -261,7 +273,7 @@ parfor a = 1:num_models
 
                 %% --- Plot Routine
 %                 if p.plotinloop==1
-%                     phiplot = reshape(phi_a(:,:,x),[p.simulation.ndata,p.num_terms]);
+%                     phiplot = reshape(phi_a(:,:,x),[p.simulation.ndata,num_perturbed_terms]);
 %                     %             rhoplot = reshape(rho_a(:,:),size(rho,1),size(rho,3));
 %                         perttitle=RunPlotRoutinep(h,a,x,its,y0,p,colors,...
 %                             sum_abs_error_a(1:x),max_corr_a(1:x),...
@@ -272,18 +284,18 @@ parfor a = 1:num_models
                 if max_corr_a(x)/sum_abs_error_a(x) == max_corr_a(x-1)/sum_abs_error_a(x-1) 
                      p_t_a(:,x:its) = zeros(size(p_t_a,1),its-x+1);
                     phi_a(:,:,x:its) = zeros(size(phi_a,1),size(phi_a,2),its-x+1);
-                    error(:,x:its) = 54321*ones(size(error,1),its-x+1);
-                    sum_abs_error_a(x:its)=54321*ones(1,its-x+1);
-                    max_corr_a(x:its)=0;
+%                     error(:,x:its) = 54321*ones(size(error,1),its-x+1);
+%                     sum_abs_error_a(x:its)=54321*ones(1,its-x+1);
+%                     max_corr_a(x:its)=0;
                 break;
                 end
                 
             else
                 p_t_a(:,x:its) = zeros(size(p_t_a,1),its-x+1);
                 phi_a(:,:,x:its) = zeros(size(phi_a,1),size(phi_a,2),its-x+1);
-                error(:,x:its) = 54321*ones(size(error,1),its-x+1);
-                sum_abs_error_a(x:its)=54321*ones(1,its-x+1);
-                max_corr_a(x:its)=0;
+%                 error(:,x:its) = 54321*ones(size(error,1),its-x+1);
+%                 sum_abs_error_a(x:its)=54321*ones(1,its-x+1);
+%                 max_corr_a(x:its)=0;
 %                 outputs_a(x:its)
                 break;
             end
@@ -292,13 +304,13 @@ parfor a = 1:num_models
         p_t(a,:,:) = p_t_a; 
         phi(a,:,:,:) = phi_a; 
 %         error(a,:,:) = error_a;
-        sum_abs_error(a,:) =  sum_abs_error_a; 
-        max_corr(a,:) =  max_corr_a;
+%         sum_abs_error(a,:) =  sum_abs_error_a; 
+%         max_corr(a,:) =  max_corr_a;
         outputs(a,:) =  outputs_a;
-        beta(a,:,:) = beta_a;
+%         beta(a,:,:) = beta_a;
         gamma(a,:,:) =  gamma_a;
         rho(a,:,:) =  rho_a; 
-        mu(a,:,:) = mu_a;
+%         mu(a,:,:) = mu_a;
         
         %clearvars y0 y_all y_ave
 %         end
@@ -333,11 +345,11 @@ for a=1:num_models
 end
 
 if continueontosecondphase
-    for a = 1:num_models
-        if best_corr_p(a)/best_error_p(a) == best_corr/best_error
-            disp('WARNING: tie between models in round robin phase');
-        end
+
+    if length(find(best_corr_p./best_error_p == best_corr/best_error))>1
+        disp('WARNING: tie between models in round robin phase');
     end
+
 %% plot winner from first round
     if p.plotinloop
         figure;
@@ -353,19 +365,19 @@ if continueontosecondphase
     %% Gradient descent for best perturbation case, starting from best model
     % keyboard
     
-    gamma2(1:p.num_terms,1:its2)=0; %reset can_mod = nom_mod
+    gamma2(1:num_perturbed_terms,1:its2)=0; %reset can_mod = nom_mod
     pertnum2 = best_pertnum;
     % gamhist2=[gamma,zeros(length(gamma),its2)];
     bite=1;
     rho2 = best_rho;
     mu2 = [best_mu best_mu];
-    mu2 = repmat(p.mod_adapt.mustart,1,its2);
+    mu2 = repmat(p.mod_adapt.mustart,num_perturbed_terms,its2);
     beta2 = zeros(length(best_beta),its2);
     beta2(:,1) = best_beta;
     sum_abs_error2 = best_error;
     max_corr2 = best_corr;
     can_mod = best_models(1);
-    p_t2 = zeros(p.num_terms,its);
+    p_t2 = zeros(num_perturbed_terms,its);
     % delM2=p_t2;
     pertlist='';
     itsstart=2;
@@ -488,10 +500,10 @@ for x = itsstart:its2
         %         y_ave2(:,:,x)=outputs.y_ave;
         %% --- plot routine
         if p.plotinloop2
-            phiplot = reshape(phi2(:,:,x),[p.simulation.ndata,p.num_terms]);
+            phiplot = reshape(phi2(:,:,x),[p.simulation.ndata,num_perturbed_terms]);
             perttitle=RunPlotRoutine(h,1,x,its2,y_ave2,p,colors,...
                 sum_abs_error2(1:x)',max_corr2(1:x)',...
-                pertnum2,p_t2(:,x),phiplot,rho2,error2);
+                pertnum2,p_t2(:,x),phiplot,gamma2,error2);
         end
         
 

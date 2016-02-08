@@ -1,5 +1,5 @@
 function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
-                            sum_abs_error,max_corr,pertnum,p_t,phi,rho,...
+                            sum_abs_error,max_corr,pertnum,p_t,phi,gamma,...
                             error)
 % plot in loop results.
     leggy = {};
@@ -12,8 +12,8 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
 
     for count=1:length(y_ave(1,2:end,1))
         leggy{count} = ['$\hat{y}+\delta M_' num2str(count) '$'];
-        leg{count} = ['$\rho_' num2str(count) '$'];
-%         leg{2*count} = ['$\rho_' num2str(count) '$'];
+        leg{count} = ['$\gamma_' num2str(count) '$'];
+%         leg{2*count} = ['$\gamma_' num2str(count) '$'];
     end                
     leggy = {'$y^*$','$\hat{y}$',leggy{:}};
 
@@ -40,6 +40,7 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
     subplot(232)
     AX = plotyy(1:x,sum_abs_error,1:x,max_corr);
     pertlist='';
+    pertnum(pertnum==0)=[];
     for count=1:length(pertnum(:))
         pertlist=strcat(pertlist,',',char(p.intvars(pertnum(count))));
     end
@@ -63,7 +64,7 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
 %             leggy2{count+1} = ['$\hat{\Delta M} \Phi(t)_' num2str(count) '$'];
 %         end
 %     end
-    leggy2{end+1} = '$NLS \sum{\Delta \hat{M} \Phi(t)}$';
+    leggy2{end+1} = '$\sum{\Delta \hat{M} \Phi(t)}$';
     plot(phi*p_t(:)); 
     if p.mod_adapt.MC_NLS_plot 
 %         for count2 = 1:size(p.dydtheta,2)-1
@@ -75,23 +76,23 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
 %             dMCstar(count2) = sum(dydtheta_norm(:,count2))/p.mod_adapt.MCstar;
 %             
 %         end
-        dMCstar = (p.true_rho'-rho(:,end));
+        dMCstar = (p.true_gamma'-gamma(:,end));
         plot(phi*(p.MC(1)-repmat(p.mod_adapt.MCstar,...
             size(p.MC(1))))/p.mod_adapt.MCstar,'--k','Linewidth',2);
         plot(phi*dMCstar,'--k','Linewidth',2);
         leggy2{end+1} = '$\sum{\Delta M^* \Phi(t)}$';
     end
         hold off;
-    l=legend(leggy2{:},...
-            'Location','NorthOutside','Orientation','horizontal');
+    l=legend(leggy2{:});%,...
+            %'Location','NorthOutside','Orientation','horizontal');
     set(l,'interpreter','latex','Fontsize',14);
     
         
 
     subplot(2,3,[3 6])        
-    for count=1:length(rho(:,1))
-        plot(1:x,rho(count,1:x),'color',colors(count)); hold on
-        % this line plot is not available when rho and target are different lengths
+    for count=1:length(gamma(:,1))
+        plot(1:x,gamma(count,1:x),'color',colors(count)); hold on
+        % this line plot is not available when gamma and target are different lengths
 %         line([0 x+1],[p.mod_adapt.exp(count) p.mod_adapt.exp(count)],'Color',colors(count),'linewidth',1.5,'linestyle','--');
     end
     hold off
@@ -99,7 +100,7 @@ function perttitle = RunPlotRoutine(h,a,x,its,y_ave,p,colors,...
     xlim([0 its+1]);
     l=legend(leg);
     set(l,'interpreter','latex','fontsize',16);
-%     ylim([0 max([max(rho)])*2 ]);
+%     ylim([0 max([max(gamma)])*2 ]);
     
     pause(.5);
 end

@@ -1,13 +1,18 @@
-%% ISLM -aggregate demand equation
+%% ISLM ydot equation
+
 clear 
 
  %% number of iterations
 its = 10; % number of iterations for each perturbation case
 its2 = 10; % number of iterations for selected perturbation set
 
+
 %% saving options
 p.save=1;
-continueontosecondphase=0;
+
+    continueontosecondphase=0;
+     gamma= [1.0; 1.0 ; 1.0 ; 1.0 ; 1.0];
+     nom_gamma = gamma;
    
 % Produce_eqns=1;
 % savefile_models = 'Results\harm_eqns.mat';
@@ -15,51 +20,47 @@ continueontosecondphase=0;
 % savefile_outs = 'Results\harm_outputs.mat';
 % Produce_phi=1;
 % savefile_phi = 'Results\harm_phi_record.mat';
-
 %% Model Setup
+
 islm = load('ISY.mat');
-% % p.Y=islm.Y;
-% % p.C=islm.C;
-% % p.GDP=islm.GDP;
-% % p.NX=islm.NX;
-% % p.RER=islm.RER;
-% % p.RI=islm.RI;
-% % p.G=islm.G;
-% % p.I=islm.I;
+
+p.Y=islm.Y;
+p.C=islm.C;
+p.GDP=islm.GDP;
+p.NX=islm.NX;
+p.RER=islm.RER;
+p.RI=islm.RI;
+p.G=islm.G;
+p.I=islm.I;
 % Rates data
 p.rY=islm.rY;
-% p.rGDP=islm.rGDP;
-% p.rNX=islm.rNX;
+p.rGDP=islm.rGDP;
+p.rNX=islm.rNX;
 p.rRER=islm.rRER;
 p.rRI=islm.rRI;
-% p.rG=islm.rG;
-% p.rC=islm.rCONS;
-% p.rI=islm.rI;
-len=length(p.rY);
+p.rG=islm.rG;
+p.rC=islm.rCONS;
+p.rI=islm.rRI;
+
 detrend=1;
 %% nn setup
-% nn1=islm.nn1;
-% na=islm.na;
-% nb(1)=islm.nb1;
-% nb(2)=islm.nb2;
-% nk(1)=islm.nk1;
-% nk(2)=islm.nk2;
-% nn=[na nb nk];
-nn=[2 2 2 1 1];
-na=nn(1);
-nb=nn(2:3);
-nk=nn(4:5);
-% % if detrend==0
-% %     na=nn1(1);
-% %     nb(1)=nn1(2);
-% %     if length(islm.nn1)==5
-% %     nb(2)=nn1(3);
-% %     nk(1)=nn1(4);
-% %     nk(2)=nn1(5);
-% %     else
-% %     nk1=nn1(3);
-% %     end
-% % end
+nn1=islm.nn1;
+na=islm.na;
+nb(1)=islm.nb1;
+nb(2)=islm.nb2;
+nk(1)=islm.nk1;
+nk(2)=islm.nk2;
+if detrend==0
+    na=nn1(1);
+    nb(1)=nn1(2);
+    if length(islm.nn1)==5
+    nb(2)=nn1(3);
+    nk(1)=nn1(4);
+    nk(2)=nn1(5);
+    else
+    nk1=nn1(3);
+    end
+end
 %%
 Acons=-islm.Vo1.A;
 Acons(1)=[];  % deleting first term
@@ -73,57 +74,64 @@ nB1=length(Bcon1);
 nB2=length(Bcon2);
 nA=length(Acons);
 %% Changing the length of the output data
-mlag=max(na+1,max(nb+nk))-1;
+trunc=max(na+1,max(nb+nk))-1;
+
 %% Defining the variables in terms of past values as Yk relating to kth past value of Y
-p.Y=p.rY(mlag+1:end);
-nt = na+nb(1)+nb(2);
+nt = nA+nB1+nB2;
 p.intvars = sym('tmp',[1 nt]);
-cons=[Acons,Bcon1,Bcon2];
-p.cons=cell(2,nt);
-for jt=1:na 
+
+for jt=1:nA 
 eval(['syms',' Y',num2str(jt),';']);
 p.intvars(jt)=eval(['Y' num2str(jt)]);
-p.cons{1,jt}=['a',num2str(jt)];
-p.cons{2,jt}=cons(jt);
-    eval(['p.Y' num2str(jt) '=islm.rY(mlag+1-jt:len-jt);']);
 end
-for jt=jt+1:jt+nb(1)
-eval(['syms',' U1',num2str(nk(1)-1+jt-na),';']);
-p.intvars(jt)=eval(['U1' num2str(nk(1)-1+jt-na)]);
-p.cons{1,jt}=['b1',num2str(nk(1)-1+jt-na)];
-p.cons{2,jt}=cons(jt);
-eval(['p.U1' num2str(nk(1)-1+jt-na) '=islm.rRI(mlag+1-nk(1)-jt+na+nb(1):len-nk(1)-jt+na+nb(1));']);
+for jt=jt+1:jt+nB1
+eval(['syms',' U1',num2str(nk(1)-1+jt-nA),';']);
+p.intvars(jt)=eval(['U1' num2str(nk(1)-1+jt-nA)]);
 end
-for jt=jt+1:jt+nb(2)
-eval(['syms',' U2',num2str(nk(2)-1+jt-na-nb(1)),';']);
-p.intvars(jt)=eval(['U2' num2str(nk(2)-1+jt-na-nb(1))]);
-p.cons{1,jt}=['b2',num2str(nk(2)-1+jt-na-nb(1))];
-p.cons{2,jt}=cons(jt);
-    eval(['p.U2' num2str(nk(2)-1+jt-na-nb(1)) '=islm.rRER(mlag-nk(2)-jt+na+nb(1)+nb(2):len-nk(2)-jt+na+nb(1)+nb(2)-1);']);
+for jt=jt+1:jt+nB2
+eval(['syms',' U2',num2str(nk(2)-1+jt-nA-nB1),';']);
+p.intvars(jt)=eval(['U2' num2str(nk(2)-1+jt-nA-nB1)]);
 end
-clear islm Acons Bcons Bcon1 Bcon2 cons;
+
 %% defining internal variables
+
 p.mod_adapt.useabs = 1;
 p.extvars = []; % external input variables of the system
 p.allvars = [p.intvars p.extvars];
 num_vars = length(p.allvars);
 
 %% load target
-% p.savepath = ['C:\users\shreyas\MSAM'];
-p.savepath = '';
+p.savepath = ['C:\users\shreyas\OneDrive\MSAM\problems\ISLM\'];
+
+cons=[Acons,Bcon1,Bcon2];
+
+% p.cons=cell(2,5)
+% for i =1:numinp
+% p.cons{1,i}=['a' num2str(i)];
+% end
+p.cons = {'a1','a2','b16','b21','b22';
+          cons(1),cons(2),cons(3),cons(4),cons(5)};
 %% interaction matrix
 p.interaction=[zeros(length(p.cons))];
-% for jt=1:length(p.cons)
-%     p.interaction(jt,jt)=1;
-%      for kt=jt+1:length(p.cons)
-%          p.interaction(jt,kt)=1;
-%      end
-% end
-% p.interaction=[1 1 1 1 1; 1 1 1 1 1; 1 1 1 1 1; 0 0 0 1 0; 0 0 0 0 1];
-p.interaction(3:6,3:6) = 1;
-
+for jt=1:length(p.cons)
+    p.interaction(jt,jt)=1;
+     for kt=jt+1:length(p.cons)
+         p.interaction(jt,kt)=1;
+     end
+end
 p.interaction=logical(p.interaction);
 %%
+mlag=6;
+len=205;
+for jt=1:mlag
+    ['p.Y' num2str(jt) '=' (mlag:len-jt) ';'];
+end
+p.Y1=p.rY(5:end-2);
+p.Y2=p.rY(6:end-1);
+p.U16=p.rRI(1:end-6);
+p.U21=p.rRER(5:end-2);
+p.U22=p.rRER(6:end-1);
+p.Y=p.rY(7:end);
       %             3.6720};
 % make parameters symbolic
 for k=1:length(p.cons(1,:))
@@ -134,29 +142,23 @@ end
 % for jt=1:ninpO
 % eval(['p.Y',num2str(jt)])=islm.Y;
 % end
+% p.simulation.ndata = length(p.Y);
+
 p.simulation.ndata = length(p.Y);
+    
 % p.mod_adapt.exp = exp;
+
 p.simulation.partitioning=0;
 p.mod_adapt.output_dydtheta=0;
+
 p.mod_adapt.algebra = 1;
+
 p.continuept2 = 0; %run more iterations on part 2
 
     
 %% nominal model
-p.nom_mod.eqn_sym=[''];
-for jt=1:na
-p.nom_mod.eqn_sym=[p.nom_mod.eqn_sym '+a' num2str(jt) '*Y' num2str(jt)];
-end
-for jt=nk(1):nk(1)+nb(1)-1
-p.nom_mod.eqn_sym=[p.nom_mod.eqn_sym '+b1' num2str(jt) '*U1' num2str(jt)];
-end
-for jt=nk(2):nk(2)+nb(2)-1
-p.nom_mod.eqn_sym=[p.nom_mod.eqn_sym '+b2' num2str(jt) '*U2' num2str(jt)];
-end
-p.nom_mod.eqn_sym=sym(p.nom_mod.eqn_sym);
-% p.nom_mod.eqn_sym = a1*Y1+a2*Y2+b16*U16+b21*U21+b22*U22;
+p.nom_mod.eqn_sym = a1*Y1+a2*Y2+b16*U16+b21*U21+b22*U22;
 
-clear detrend na nb nk jt kt len nn nn1 k mlag nt num_vars;
 p.nom_mod = getTerms(p.nom_mod,'mod',p);
 p.num_terms = length(regexp([p.nom_mod.terms(:).type],'int'));
 p.nom_mod.eqn_sym = GetEqnSym(p.nom_mod);
@@ -164,9 +166,8 @@ p.nom_mod.eqn_str = GetEqnStr_sym(p.nom_mod,p.allvars,p);
 p.nom_mod.eqn_form = GetEqnForm(p.nom_mod);
 disp(['nominal model: ' char(p.nom_mod.eqn_form)]);
 %% model adaptation settings
-% p.mod_adapt.beta_start = .01*ones(p.num_terms,1);
-p.mod_adapt.beta_start = .01;
-% p.init_beta = repmat(p.mod_adapt.beta_start,1,its);
+p.mod_adapt.beta_start = .01*ones(p.num_terms,1);
+p.init_beta = repmat(p.mod_adapt.beta_start,1,its);
 p.mod_adapt.maxbeta = 0.1;
 p.mod_adapt.minbeta = .001;
 p.mod_adapt.betastep = .001;
@@ -176,9 +177,8 @@ p.mod_adapt.maxDMC = 1;
 p.mod_adapt.adapt_beta = 0;    
 %mu settings
 p.mod_adapt.adapt_mu = 0;
-% p.mod_adapt.mustart = repmat(0.1,p.num_terms,1); %starting confidence
-p.mod_adapt.mustart = 0.1;
-% p.init_mu = repmat(p.mod_adapt.mustart,1,its);
+p.mod_adapt.mustart = repmat(0.1,p.num_terms,1); %starting confidence
+p.init_mu = repmat(p.mod_adapt.mustart,1,its);
 p.mod_adapt.agg = [15, .05]; %mu change aggressiveness
 p.mod_adapt.mu_min = 0.01;
 %% model complexity setting
@@ -200,7 +200,7 @@ p.mod_adapt.bestpass =1;
 p.mod_adapt.valleycontrol = 1;
 %% plotting options
 p.plotinloop=1;
-p.plotinloop2=0;
+p.plotinloop2=1;
 p.mod_adapt.MC_NLS_plot =0;
     
 warning('off','all');
@@ -221,7 +221,7 @@ p.yhat = EvalModel(p.nom_mod.eqn_sym,p);
 %     xlabel('t','fontsize',14);
 % % 
    
-parallel = 0;
+parallel = 1;
     
 for opt =0
     for devcnt = 0
