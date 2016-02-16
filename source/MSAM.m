@@ -32,7 +32,7 @@ if ~p.continuept2
     end
   
     pert_index = unique(allcomb(a{:}),'rows')';
-    num_models = length(pert_index);
+    num_models = size(pert_index,2);
     num_perturbed_terms = length(pert_index(pert_index(:,1)>0,1));
     
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
@@ -330,9 +330,9 @@ elseif p.continuept2
     its2=2*its2;
 end
 if continueontosecondphase
-for count=1:length(best_pertnum)
-    pertlist=strcat(pertlist,',',char(p.intvars(best_pertnum(count))));
-end
+% for count=1:length(best_pertnum)
+%     pertlist=strcat(pertlist,',',char(p.intvars(best_pertnum(count))));
+% end
 if p.plotinloop2
     h=figure;
 end

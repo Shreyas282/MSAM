@@ -34,7 +34,7 @@ if ~p.continuept2
     end
   
     pert_index = unique(allcomb(a{:}),'rows');
-    num_models = length(pert_index);
+    num_models = size(pert_index,1);
     num_perturbed_terms = length(pert_index(1,pert_index(1,:)>0));
 %     pert_index = shuffle(pert_index,1);
     nom_error = sum(abs(p.Y-p.yhat(:,1)));
