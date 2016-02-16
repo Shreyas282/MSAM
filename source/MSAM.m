@@ -4,7 +4,7 @@ function out = MSAM(p,its,its2)
 
 out=[];
 disp('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\');
-disp(' Running MSAM version 1.0.3-wgl');
+disp(' Running MSAM version 1.0.4-wgl');
 disp('///////////////////////////////');
 
 disp(['Number of round robin iterations: ' num2str(its)]);
@@ -459,10 +459,19 @@ if p.save==1
     save(savefile); 
     best_mod.eqn_sym
 end
+
+out.nom_mod = p.nom_mod;
+out.nom_error = nom_error;
+out.nom_corr = nom_corr;
 out.best_mod = best_mod;
 out.y_best = y_best;
 out.best_error = best_error;
 out.best_corr = best_corr;
 out.best_rho=best_rho;
 
+if continueontosecondphase
+	disp(['best model: ' char(out.best_mod.eqn_form)]);
+	disp(['error improvement: ' num2str((out.nom_error-out.best_error)/out.nom_error*100) '%']);
+	disp(['correlation improvement: ' num2str((out.best_corr-out.nom_corr)/out.nom_corr*100) '%']);
+end
 end
